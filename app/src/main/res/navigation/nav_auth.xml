@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_auth"
+    app:startDestination="@id/welcomeFragment">
+
+    <!-- Welcome -->
+    <fragment
+        android:id="@+id/welcomeFragment"
+        android:name="com.kulaan.app.ui.auth.WelcomeFragment"
+        android:label="Welcome">
+        <action
+            android:id="@+id/action_welcome_to_login"
+            app:destination="@id/loginFragment"/>
+    </fragment>
+
+    <!-- Login (menerima argument role) -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.kulaan.app.ui.auth.LoginFragment"
+        android:label="Login">
+        <argument
+            android:name="role"
+            app:argType="string"
+            android:defaultValue="buyer"/>
+        <action
+            android:id="@+id/action_login_to_register_buyer"
+            app:destination="@id/registerBuyerFragment"/>
+        <action
+            android:id="@+id/action_login_to_register_seller"
+            app:destination="@id/registerSellerFragment"/>
+    </fragment>
+
+    <!-- Register Buyer -->
+    <fragment
+        android:id="@+id/registerBuyerFragment"
+        android:name="com.kulaan.app.ui.auth.RegisterBuyerFragment"
+        android:label="Register Buyer"/>
+
+    <!-- Register Seller -->
+    <fragment
+        android:id="@+id/registerSellerFragment"
+        android:name="com.kulaan.app.ui.auth.RegisterSellerFragment"
+        android:label="Register Seller">
+        <action
+            android:id="@+id/action_register_seller_to_store_setup"
+            app:destination="@id/storeSetupFragment"/>
+    </fragment>
+
+    <!-- Store Setup -->
+    <fragment
+        android:id="@+id/storeSetupFragment"
+        android:name="com.kulaan.app.ui.auth.StoreSetupFragment"
+        android:label="Setup Toko"/>
+
+</navigation>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#F0F4F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Daftar sebagai Penjual"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#1A3C5E"
+            android:layout_marginTop="48dp"
+            android:layout_marginBottom="24dp"/>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Nama Lengkap"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="12dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Email"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="12dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Password"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:endIconMode="password_toggle"
+                    android:layout_marginBottom="12dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Konfirmasi Password"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:endIconMode="password_toggle"
+                    android:layout_marginBottom="24dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_confirm_password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_register"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Daftar Sekarang"
+                    android:textSize="16sp"
+                    app:backgroundTint="#1A3C5E"
+                    app:cornerRadius="12dp"/>
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginTop="12dp"/>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tv_to_login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sudah punya akun? Masuk"
+            android:textColor="#1A3C5E"
+            android:padding="8dp"
+            android:layout_marginTop="12dp"/>
+
+    </LinearLayout>
+</ScrollView>
