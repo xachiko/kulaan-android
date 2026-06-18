@@ -101,9 +101,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     composable("buyer_dashboard") {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Buyer Dashboard Screen")
-                        }
+                        com.kulaan.app.ui.buyer.BuyerBottomNavigation()
                     }
                     composable("seller_dashboard") {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

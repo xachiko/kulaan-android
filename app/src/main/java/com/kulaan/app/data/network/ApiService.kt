@@ -17,4 +17,16 @@ interface ApiService {
     @Headers("Accept: application/json")
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
+
+    @Headers("Accept: application/json")
+    @retrofit2.http.GET("products")
+    suspend fun getProducts(
+        @retrofit2.http.Query("search") search: String? = null,
+        @retrofit2.http.Query("category") category: Int? = null,
+        @retrofit2.http.Query("page") page: Int = 1
+    ): Response<com.kulaan.app.data.model.ProductResponse>
+
+    @Headers("Accept: application/json")
+    @retrofit2.http.GET("categories")
+    suspend fun getCategories(): Response<com.kulaan.app.data.model.CategoryResponse>
 }
