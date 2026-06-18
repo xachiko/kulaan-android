@@ -36,24 +36,37 @@ class MainActivity : ComponentActivity() {
             KulaanTheme {
                 val navController = rememberNavController()
                 val token by userPreferences.authToken.collectAsState(initial = null)
-                val roles by userPreferences.userRoles.collectAsState(initial = emptyList())
+                val roles by userPreferences.userRoles.collectAsState(initial = null)
 
-                LaunchedEffect(token) {
+                LaunchedEffect(token, roles) {
                     if (token != null) {
-                        if (roles.contains("buyer") && roles.contains("seller")) {
-                            navController.navigate("role_picker") {
-                                popUpTo("splash") { inclusive = true }
-                            }
-                        } else if (roles.contains("seller")) {
-                            navController.navigate("seller_dashboard") {
-                                popUpTo("splash") { inclusive = true }
-                            }
-                        } else if (roles.contains("buyer")) {
-                            navController.navigate("buyer_dashboard") {
-                                popUpTo("splash") { inclusive = true }
+                        if (roles != null) {
+                            when {
+                                roles!!.contains("buyer") && roles!!.contains("seller") -> {
+                                    navController.navigate("role_picker") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                                roles!!.contains("seller") -> {
+                                    navController.navigate("seller_dashboard") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                                roles!!.contains("buyer") -> {
+                                    navController.navigate("buyer_dashboard") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
+                                else -> {
+                                    // Fallback if token exists but no known roles
+                                    navController.navigate("auth") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
                             }
                         }
-                    } else {
+                    } else if (token == null && roles != null) {
+                        // Definitely not logged in
                         navController.navigate("auth") {
                             popUpTo("splash") { inclusive = true }
                         }
