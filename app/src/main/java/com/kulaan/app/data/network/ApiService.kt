@@ -88,6 +88,7 @@ interface ApiService {
         @Part("min_order") minOrder: RequestBody,
         @Part("description") description: RequestBody?,
         @Part("id_category") idCategory: RequestBody,
+        @Part("category_name") categoryName: RequestBody,
         @Part productImage: MultipartBody.Part?
     ): Response<StoreResponse>
 }

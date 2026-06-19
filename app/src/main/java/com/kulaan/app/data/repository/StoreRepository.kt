@@ -151,6 +151,7 @@ class StoreRepository(private val sessionManager: SessionManager) {
         minOrder: Int,
         description: String?,
         idCategory: Int,
+        categoryName: String,
         imageUri: Uri?,
         context: Context
     ): Result<StoreResponse> {
@@ -162,6 +163,7 @@ class StoreRepository(private val sessionManager: SessionManager) {
             val minOrderPart = minOrder.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val descPart = description?.toRequestBody("text/plain".toMediaTypeOrNull())
             val catPart = idCategory.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val catNamePart = categoryName.toRequestBody("text/plain".toMediaTypeOrNull())
 
             var imagePart: MultipartBody.Part? = null
             if (imageUri != null) {
@@ -173,7 +175,7 @@ class StoreRepository(private val sessionManager: SessionManager) {
                 }
             }
 
-            val response = api.createProduct(namePart, pricePart, unitPart, stockPart, minOrderPart, descPart, catPart, imagePart)
+            val response = api.createProduct(namePart, pricePart, unitPart, stockPart, minOrderPart, descPart, catPart, catNamePart, imagePart)
             if (response.isSuccessful && response.body()?.success == true) {
                 Result.success(response.body()!!)
             } else {

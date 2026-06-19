@@ -354,6 +354,8 @@ fun AddProductScreen(
                     val priceValue = price.toDoubleOrNull() ?: 0.0
                     val stockValue = stock.toIntOrNull() ?: 0
                     val minOrderValue = minOrder.toIntOrNull() ?: 1
+                    val selectedCategory = categories.find { it.idCategory == selectedCategoryId }
+                    
                     val result = repository.createProduct(
                         name = name,
                         price = priceValue,
@@ -362,6 +364,7 @@ fun AddProductScreen(
                         minOrder = minOrderValue,
                         description = description.ifBlank { null },
                         idCategory = selectedCategoryId ?: return@LaunchedEffect,
+                        categoryName = selectedCategory?.nameCategory ?: "",
                         imageUri = imageUri,
                         context = context
                     )
