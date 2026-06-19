@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -109,6 +110,15 @@ fun HomeScreen(
                 ),
                 singleLine = true
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            IconButton(
+                onClick = { viewModel.refresh() },
+                modifier = Modifier
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .padding(4.dp)
+            ) {
+                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+            }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(
                 onClick = { showFilterSheet = true },

@@ -104,6 +104,10 @@ class ProductViewModel : ViewModel() {
         }
     }
 
+    fun refresh() {
+        loadProducts(isRefresh = true)
+    }
+
     fun searchProducts(keyword: String) {
         _searchQuery.value = keyword
     }
