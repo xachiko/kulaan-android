@@ -10,7 +10,9 @@ class AuthInterceptor(private val sessionManager: SessionManager) : Interceptor 
         val token = sessionManager.getToken()
         val request = chain.request().newBuilder().apply {
             addHeader("Accept", "application/json")
-            addHeader("Content-Type", "application/json")
+            // This is the magic line for Laravel Herd:
+            addHeader("Host", "src.test") 
+
             if (token != null) {
                 addHeader("Authorization", "Bearer $token")
             }

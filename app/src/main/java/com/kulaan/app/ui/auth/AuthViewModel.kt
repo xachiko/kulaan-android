@@ -10,6 +10,7 @@ import com.kulaan.app.data.model.LoginRequest
 import com.kulaan.app.data.model.RegisterRequest
 import com.kulaan.app.data.model.User
 import com.kulaan.app.data.repository.AuthRepository
+import com.kulaan.app.utils.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,20 +36,21 @@ data class AuthState(
 
 class AuthViewModel(
     private val repository: AuthRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthState())
     val uiState: StateFlow<AuthState> = _uiState.asStateFlow()
 
     fun onTabSwitch(tab: AuthTab) {
-        _uiState.update { 
+        _uiState.update {
             it.copy(
-                selectedTab = tab, 
-                fieldErrors = emptyMap(), 
+                selectedTab = tab,
+                fieldErrors = emptyMap(),
                 authResult = null,
-                selectedRole = Role.BUYER // default
-            ) 
+                selectedRole = Role.BUYER
+            )
         }
     }
 
@@ -68,7 +70,7 @@ class AuthViewModel(
                 val response = repository.login(request)
                 handleResponse(response)
             } catch (e: Exception) {
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         isLoading = false,
                         authResult = AuthResult.Error("Debug Login: ${e.localizedMessage ?: e.message ?: "Unknown Error"}")
@@ -87,7 +89,7 @@ class AuthViewModel(
                 val response = repository.register(request)
                 handleResponse(response)
             } catch (e: Exception) {
-                _uiState.update { 
+                _uiState.update {
                     it.copy(
                         isLoading = false,
                         authResult = AuthResult.Error("Debug Register: ${e.localizedMessage ?: e.message ?: "Unknown Error"}")
@@ -104,8 +106,9 @@ class AuthViewModel(
             val token = body.data.token
             val notice = body.data.notice
             saveAuthToDataStore(token, user)
-            _uiState.update { 
-                it.copy(isLoading = false, authResult = AuthResult.Success(user, token, notice)) 
+            saveAuthToSessionManager(token, user)
+            _uiState.update {
+                it.copy(isLoading = false, authResult = AuthResult.Success(user, token, notice))
             }
         } else {
             val errorBody = response.errorBody()?.string()
@@ -130,7 +133,7 @@ class AuthViewModel(
                 null
             }
 
-            _uiState.update { 
+            _uiState.update {
                 it.copy(
                     isLoading = false,
                     fieldErrors = fieldErrors,
@@ -143,16 +146,29 @@ class AuthViewModel(
     private suspend fun saveAuthToDataStore(token: String, user: User) {
         userPreferences.saveAuthData(token, user)
     }
+
+    private fun saveAuthToSessionManager(token: String, user: User) {
+        val roleStr = user.roles.firstOrNull() ?: ""
+        sessionManager.saveSession(
+            token = token,
+            userId = user.id_user,
+            name = user.name,
+            email = user.email,
+            role = roleStr,
+            hasStore = false
+        )
+    }
 }
 
 class AuthViewModelFactory(
     private val repository: AuthRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val sessionManager: SessionManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository, userPreferences) as T
+            return AuthViewModel(repository, userPreferences, sessionManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

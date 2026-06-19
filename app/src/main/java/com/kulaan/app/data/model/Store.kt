@@ -10,5 +10,10 @@ data class Store(
     @SerializedName("district") val district: String?,
     @SerializedName("operating_hours") val operatingHours: String?,
     @SerializedName("store_logo") val storeLogo: String?,
-    @SerializedName("status") val status: String   // "menunggu", "aktif", "ditolak"
+    @SerializedName("status") val status: String,
+    @SerializedName("id_category") val idCategory: Int? = null,
+    @SerializedName("category_name") val categoryName: String? = null,
+    val whatsapp: String? = null,
+    val instagram: String? = null,
+    @SerializedName("created_at") val createdAt: String? = null
 )
