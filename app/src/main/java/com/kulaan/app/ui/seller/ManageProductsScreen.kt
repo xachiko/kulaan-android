@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,8 +28,11 @@ import com.kulaan.app.utils.UiState
 @Composable
 fun ManageProductsScreen(
     productsState: UiState<List<SellerProduct>>,
-    onAddProduct: () -> Unit
+    onAddProduct: () -> Unit,
+    onEditProduct: (Int) -> Unit,
+    onDeleteProduct: (Int) -> Unit
 ) {
+    var productToDelete by remember { mutableStateOf<SellerProduct?>(null) }
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
@@ -98,7 +103,11 @@ fun ManageProductsScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(productsState.data) { product ->
-                                SellerProductCard(product = product)
+                                SellerProductCard(
+                                    product = product,
+                                    onEdit = { onEditProduct(product.idProduct) },
+                                    onDelete = { productToDelete = product }
+                                )
                             }
                         }
                     }
@@ -106,75 +115,133 @@ fun ManageProductsScreen(
             }
         }
     }
+
+    if (productToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { productToDelete = null },
+            title = { Text("Hapus Produk") },
+            text = { Text("Apakah Anda yakin ingin menghapus produk \"${productToDelete?.name}\"?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        productToDelete?.let { onDeleteProduct(it.idProduct) }
+                        productToDelete = null
+                    }
+                ) {
+                    Text("Ya, Hapus", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { productToDelete = null }) {
+                    Text("Batal", color = Color.Gray)
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun SellerProductCard(product: SellerProduct) {
+fun SellerProductCard(
+    product: SellerProduct,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            AsyncImage(
-                model = product.imageUrl,
-                contentDescription = product.name,
-                modifier = Modifier
-                    .size(72.dp)
-                    .padding(end = 12.dp),
-                contentScale = ContentScale.Crop
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = product.name,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier
+                        .size(72.dp)
+                        .padding(end = 12.dp),
+                    contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Rp${String.format("%,.0f", product.price).replace(",", ".")}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    color = PrimaryBlue
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Stok: ${product.stock}",
-                        fontSize = 12.sp,
-                        color = TextSecondary
+                        text = product.name,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    if (product.unit != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Rp${String.format("%,.0f", product.price).replace(",", ".")}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = PrimaryBlue
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "/ ${product.unit}",
+                            text = "Stok: ${product.stock}",
                             fontSize = 12.sp,
                             color = TextSecondary
+                        )
+                        if (product.unit != null) {
+                            Text(
+                                text = "/ ${product.unit}",
+                                fontSize = 12.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+                // Status badge
+                if (product.status != null) {
+                    val statusColor = when (product.status) {
+                        "aktif" -> Color(0xFF4CAF50)
+                        "ditolak" -> Color(0xFFE24B4A)
+                        else -> Color(0xFFFFA726)
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = statusColor.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = product.status.replaceFirstChar { it.uppercase() },
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            fontSize = 10.sp,
+                            color = statusColor,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
             }
-            // Status badge
-            if (product.status != null) {
-                val statusColor = when (product.status) {
-                    "aktif" -> Color(0xFF4CAF50)
-                    "ditolak" -> Color(0xFFE24B4A)
-                    else -> Color(0xFFFFA726)
-                }
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = statusColor.copy(alpha = 0.15f)
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                OutlinedButton(
+                    onClick = onEdit,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.height(32.dp),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(
-                        text = product.status.replaceFirstChar { it.uppercase() },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        color = statusColor,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Edit", fontSize = 12.sp)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                OutlinedButton(
+                    onClick = onDelete,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.height(32.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Hapus", modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Hapus", fontSize = 12.sp)
                 }
             }
         }

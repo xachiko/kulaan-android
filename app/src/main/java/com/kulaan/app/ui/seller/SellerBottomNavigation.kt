@@ -1,6 +1,7 @@
 package com.kulaan.app.ui.seller
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,9 +19,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.kulaan.app.MainActivity
 import com.kulaan.app.data.local.UserPreferences
@@ -41,6 +44,7 @@ sealed class SellerNavItem(val route: String, val icon: ImageVector, val title: 
 fun SellerBottomNavigation(
     sessionManager: SessionManager
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val repository = remember { StoreRepository(sessionManager) }
     val viewModel: SellerViewModel = viewModel(
@@ -100,6 +104,20 @@ fun SellerBottomNavigation(
                     productsState = uiState.products,
                     onAddProduct = {
                         navController.navigate("add_product")
+                    },
+                    onEditProduct = { productId ->
+                        navController.navigate("edit_product/$productId")
+                    },
+                    onDeleteProduct = { productId ->
+                        viewModel.deleteProduct(
+                            id = productId,
+                            onSuccess = {
+                                Toast.makeText(context, "Produk berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
                 )
             }
@@ -125,8 +143,24 @@ fun SellerBottomNavigation(
                     sessionManager = sessionManager,
                     onBack = { navController.popBackStack() },
                     onSuccess = {
-                        navController.popBackStack()
                         viewModel.loadProducts()
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable(
+                route = "edit_product/{productId}",
+                arguments = listOf(navArgument("productId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getInt("productId") ?: return@composable
+                EditProductScreen(
+                    sessionManager = sessionManager,
+                    productId = productId,
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onSuccess = {
+                        viewModel.loadProducts()
+                        navController.popBackStack()
                     }
                 )
             }

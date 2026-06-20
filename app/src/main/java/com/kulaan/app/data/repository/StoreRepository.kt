@@ -2,6 +2,7 @@ package com.kulaan.app.data.repository
 
 import android.content.Context
 import android.net.Uri
+import com.kulaan.app.data.model.AddProductResponse
 import com.kulaan.app.data.model.CategoryResponse
 import com.kulaan.app.data.model.SellerProductResponse
 import com.kulaan.app.data.model.StoreResponse
@@ -154,7 +155,7 @@ class StoreRepository(private val sessionManager: SessionManager) {
         categoryName: String,
         imageUri: Uri?,
         context: Context
-    ): Result<StoreResponse> {
+    ): Result<AddProductResponse> {
         return try {
             val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val pricePart = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
@@ -205,6 +206,87 @@ class StoreRepository(private val sessionManager: SessionManager) {
                 Result.success(response.body()!!)
             } else {
                 Result.failure(Exception("Gagal memuat kategori"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateProduct(
+        id: Int,
+        name: String,
+        price: Double,
+        unit: String?,
+        stock: Int,
+        minOrder: Int,
+        description: String?,
+        idCategory: Int,
+        categoryName: String,
+        imageUri: Uri?,
+        context: Context
+    ): Result<AddProductResponse> {
+        return try {
+            val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val pricePart = price.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val unitPart = unit?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val stockPart = stock.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val minOrderPart = minOrder.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val descPart = description?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val catPart = idCategory.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val catNamePart = categoryName.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            var imagePart: MultipartBody.Part? = null
+            if (imageUri != null) {
+                val inputStream = context.contentResolver.openInputStream(imageUri)
+                val byteArray = inputStream?.use { it.readBytes() }
+                if (byteArray != null) {
+                    val requestBody = byteArray.toRequestBody("image/*".toMediaTypeOrNull())
+                    imagePart = MultipartBody.Part.createFormData("product_image", "product.jpg", requestBody)
+                }
+            }
+
+            val response = api.updateProduct(id, namePart, pricePart, unitPart, stockPart, minOrderPart, descPart, catPart, catNamePart, imagePart)
+            if (response.isSuccessful && response.body()?.success == true) {
+                Result.success(response.body()!!)
+            } else {
+                var msg = "Gagal mengubah produk (HTTP ${response.code()})"
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val json = org.json.JSONObject(errorBody)
+                            msg = json.optString("message", json.optString("errors", errorBody))
+                        } catch (e: Exception) {
+                            msg = "Error ${response.code()}: ${errorBody.take(150)}"
+                        }
+                    }
+                } catch (e: Exception) {}
+                Result.failure(Exception(msg))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteProduct(id: Int): Result<StoreResponse> {
+        return try {
+            val response = api.deleteProduct(id)
+            if (response.isSuccessful && response.body()?.success == true) {
+                Result.success(response.body()!!)
+            } else {
+                var msg = "Gagal menghapus produk (HTTP ${response.code()})"
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    if (errorBody != null) {
+                        try {
+                            val json = org.json.JSONObject(errorBody)
+                            msg = json.optString("message", json.optString("errors", errorBody))
+                        } catch (e: Exception) {
+                            msg = "Error ${response.code()}: ${errorBody.take(150)}"
+                        }
+                    }
+                } catch (e: Exception) {}
+                Result.failure(Exception(msg))
             }
         } catch (e: Exception) {
             Result.failure(e)

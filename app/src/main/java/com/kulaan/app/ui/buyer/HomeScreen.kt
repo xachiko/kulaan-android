@@ -38,6 +38,7 @@ fun HomeScreen(
     val categoriesState by viewModel.categoriesState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     val gridState = rememberLazyGridState()
 
@@ -117,7 +118,11 @@ fun HomeScreen(
                     .background(Color.White, RoundedCornerShape(12.dp))
                     .padding(4.dp)
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+                if (isRefreshing) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF1976D2), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(

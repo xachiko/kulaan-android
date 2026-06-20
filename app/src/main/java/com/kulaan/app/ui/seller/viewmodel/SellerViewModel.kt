@@ -73,6 +73,25 @@ class SellerViewModel(
             }
         }
     }
+    fun deleteProduct(id: Int, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            val result = repository.deleteProduct(id)
+            result.onSuccess {
+                loadProducts()
+                onSuccess()
+            }.onFailure { e ->
+                onError(e.message ?: "Gagal menghapus produk")
+            }
+        }
+    }
+
+    fun getProductById(id: Int): SellerProduct? {
+        val state = _uiState.value.products
+        if (state is UiState.Success) {
+            return state.data.find { it.idProduct == id }
+        }
+        return null
+    }
 }
 
 class SellerViewModelFactory(

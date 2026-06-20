@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kulaan.app.data.model.Category
 import com.kulaan.app.data.repository.StoreRepository
+import com.kulaan.app.ui.seller.viewmodel.SellerViewModel
 import com.kulaan.app.ui.theme.PrimaryBlue
-import com.kulaan.app.ui.theme.TextSecondary
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.UiState
 import kotlinx.coroutines.delay
@@ -33,8 +33,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddProductScreen(
+fun EditProductScreen(
     sessionManager: SessionManager,
+    productId: Int,
+    viewModel: SellerViewModel,
     onBack: () -> Unit,
     onSuccess: () -> Unit
 ) {
@@ -61,7 +63,6 @@ fun AddProductScreen(
 
     val units = listOf("pcs", "kg", "liter", "bungkus", "porsi", "box", "meter", "lusin")
     
-    // Specific categories from the image
     val defaultCategories = listOf(
         Category(1, "pakaian", null),
         Category(2, "fashion & aksesoris", null),
@@ -79,10 +80,25 @@ fun AddProductScreen(
         Category(14, "lain lain", null)
     )
 
-    LaunchedEffect(Unit) {
+    // Load initial data
+    LaunchedEffect(productId) {
+        val product = viewModel.getProductById(productId)
+        if (product != null) {
+            name = product.name
+            price = String.format("%.0f", product.price)
+            unit = product.unit ?: ""
+            stock = product.stock.toString()
+            isActive = product.status != "ditolak"
+            // We use default values for missing details in SellerProduct listing model
+        }
+
         val result = repository.getCategories()
         result.onSuccess { 
             categories = if (it.data.isNotEmpty()) it.data else defaultCategories
+            if (product?.category != null) {
+                // Attempt to match category
+                selectedCategoryId = categories.find { cat -> cat.nameCategory.equals(product.category.nameCategory, ignoreCase = true) }?.idCategory
+            }
         }.onFailure {
             categories = defaultCategories
         }
@@ -98,7 +114,7 @@ fun AddProductScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Tambah Produk", fontWeight = FontWeight.Bold) },
+                title = { Text("Edit Produk", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Kembali", tint = Color.White)
@@ -285,7 +301,7 @@ fun AddProductScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = if (imageUri != null) "Gambar terpilih" else "Choose File No file chosen",
+                        text = if (imageUri != null) "Gambar baru terpilih" else "Biarkan kosong jika tidak diubah",
                         fontSize = 13.sp,
                         color = if (imageUri != null) PrimaryBlue else Color.Gray,
                         modifier = Modifier.weight(1f)
@@ -294,20 +310,6 @@ fun AddProductScreen(
                         Text("Pilih", color = Color.DarkGray)
                     }
                 }
-            }
-
-            // Produk Aktif Switch
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Produk Aktif", fontSize = 14.sp, color = Color.Gray)
-                Switch(
-                    checked = isActive,
-                    onCheckedChange = { isActive = it },
-                    colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = PrimaryBlue)
-                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -338,7 +340,8 @@ fun AddProductScreen(
                             val minOrderValue = minOrder.toIntOrNull() ?: 1
                             val selectedCategory = categories.find { it.idCategory == selectedCategoryId }
                             
-                            val result = repository.createProduct(
+                            val result = repository.updateProduct(
+                                id = productId,
                                 name = name,
                                 price = priceValue,
                                 unit = unit.ifBlank { null },
@@ -353,14 +356,14 @@ fun AddProductScreen(
                             
                             result.onSuccess {
                                 snackbarHostState.showSnackbar(
-                                    message = "Produk \"$name\" berhasil ditambahkan!",
+                                    message = "Produk \"$name\" berhasil diubah!",
                                     duration = SnackbarDuration.Short
                                 )
                                 submitState = UiState.Success(Unit)
                                 delay(800)
                                 onSuccess()
                             }.onFailure { e ->
-                                submitState = UiState.Error(e.message ?: "Gagal menambahkan produk")
+                                submitState = UiState.Error(e.message ?: "Gagal mengubah produk")
                             }
                         }
                     },
@@ -372,7 +375,7 @@ fun AddProductScreen(
                     if (submitState is UiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Text("Tambah Produk", fontWeight = FontWeight.Bold)
+                        Text("Simpan Perubahan", fontWeight = FontWeight.Bold)
                     }
                 }
             }

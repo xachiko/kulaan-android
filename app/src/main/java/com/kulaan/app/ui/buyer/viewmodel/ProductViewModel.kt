@@ -24,6 +24,9 @@ class ProductViewModel : ViewModel() {
     private val _productsState = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
     val productsState: StateFlow<UiState<List<Product>>> = _productsState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private val _categoriesState = MutableStateFlow<List<Category>>(emptyList())
     val categoriesState: StateFlow<List<Category>> = _categoriesState.asStateFlow()
 
@@ -69,7 +72,10 @@ class ProductViewModel : ViewModel() {
         if (isRefresh) {
             currentPage = 1
             currentProductsList.clear()
-            _productsState.value = UiState.Loading
+            _isRefreshing.value = true
+            if (_productsState.value !is UiState.Success) {
+                _productsState.value = UiState.Loading
+            }
         }
 
         if (currentPage > lastPage && !isRefresh) return
@@ -100,6 +106,7 @@ class ProductViewModel : ViewModel() {
                 if (isRefresh) _productsState.value = UiState.Error("Network error")
             } finally {
                 isLoadingNextPage = false
+                if (isRefresh) _isRefreshing.value = false
             }
         }
     }
