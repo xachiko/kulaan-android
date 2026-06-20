@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.kulaan.app.data.model.Category
 import com.kulaan.app.data.model.Product
 import com.kulaan.app.data.repository.ProductRepository
+import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.UiState
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +19,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
-class ProductViewModel : ViewModel() {
+class ProductViewModel(private val sessionManager: SessionManager) : ViewModel() {
 
-    private val repository = ProductRepository()
+    private val repository = ProductRepository(sessionManager)
 
     private val _productsState = MutableStateFlow<UiState<List<Product>>>(UiState.Loading)
     val productsState: StateFlow<UiState<List<Product>>> = _productsState.asStateFlow()
@@ -129,5 +131,15 @@ class ProductViewModel : ViewModel() {
             currentPage++
             loadProducts(isRefresh = false)
         }
+    }
+}
+
+class ProductViewModelFactory(private val sessionManager: SessionManager) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProductViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProductViewModel(sessionManager) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

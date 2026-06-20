@@ -25,14 +25,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 import com.kulaan.app.ui.buyer.components.ProductCard
 import com.kulaan.app.ui.buyer.viewmodel.ProductViewModel
+import com.kulaan.app.ui.buyer.viewmodel.ProductViewModelFactory
+import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    viewModel: ProductViewModel = viewModel()
+    viewModel: ProductViewModel = viewModel(
+        factory = ProductViewModelFactory(SessionManager(LocalContext.current))
+    )
 ) {
     val productsState by viewModel.productsState.collectAsState()
     val categoriesState by viewModel.categoriesState.collectAsState()
