@@ -1,13 +1,17 @@
 package com.kulaan.app.ui.buyer
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import com.kulaan.app.R
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import com.kulaan.app.ui.theme.KulaanTheme
 
-class BuyerMainActivity : AppCompatActivity() {
+class BuyerMainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // TODO: setContentView(R.layout.activity_buyer_main)
-        // Placeholder — akan diisi di fase berikutnya
+        setContent {
+            KulaanTheme {
+                BuyerBottomNavigation()
+            }
+        }
     }
 }
