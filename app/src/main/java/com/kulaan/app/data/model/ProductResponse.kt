@@ -14,3 +14,8 @@ data class PaginationMeta(
     @SerializedName("per_page") val perPage: Int,
     val total: Int
 )
+
+data class PopularProductsResponse(
+    val success: Boolean,
+    val data: List<Product>
+)
