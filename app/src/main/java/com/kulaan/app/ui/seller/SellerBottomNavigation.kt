@@ -92,11 +92,10 @@ fun SellerBottomNavigation(
         ) {
             composable(SellerNavItem.Dashboard.route) {
                 SellerDashboardScreen(
-                    storeName = (uiState.storeProfile as? UiState.Success)?.data?.storeName,
-                    storeStatus = (uiState.storeProfile as? UiState.Success)?.data?.status,
                     onKelolaProfil = {
                         navController.navigate("profile")
-                    }
+                    },
+                    sessionManager = sessionManager
                 )
             }
             composable(SellerNavItem.Products.route) {
@@ -130,11 +129,20 @@ fun SellerBottomNavigation(
             composable("profile") {
                 StoreProfileScreen(
                     storeState = uiState.storeProfile,
-                    onEditProfile = { navController.popBackStack() },
+                    onEditProfile = { navController.navigate("edit_store") },
                     onAddProduct = {
                         navController.navigate("add_product") {
                             popUpTo(SellerNavItem.Products.route) { inclusive = true }
                         }
+                    }
+                )
+            }
+            composable("edit_store") {
+                StoreSetupScreen(
+                    sessionManager = sessionManager,
+                    onSetupComplete = {
+                        viewModel.loadStoreProfile()
+                        navController.popBackStack()
                     }
                 )
             }

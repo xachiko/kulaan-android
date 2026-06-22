@@ -15,5 +15,6 @@ data class Store(
     @SerializedName("category_name") val categoryName: String? = null,
     val whatsapp: String? = null,
     val instagram: String? = null,
-    @SerializedName("created_at") val createdAt: String? = null
+    @SerializedName("created_at") val createdAt: String? = null,
+    val products: List<Product>? = null
 )

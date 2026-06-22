@@ -35,6 +35,9 @@ import com.kulaan.app.utils.UiState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onNavigateToStores: () -> Unit,
+    onNavigateToPopularProducts: () -> Unit,
+    onProductClick: (Int) -> Unit,
     viewModel: ProductViewModel = viewModel(
         factory = ProductViewModelFactory(SessionManager(LocalContext.current))
     )
@@ -71,14 +74,14 @@ fun HomeScreen(
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFF1976D2), Color(0xFF42A5F5))
+                        colors = listOf(Color(0xFF185FA5), Color(0xFF42A5F5))
                     )
                 )
                 .padding(20.dp)
         ) {
             Column {
                 Text(
-                    text = "Halo, Pembeli! \uD83D\uDC4B",
+                    text = "Halo, Pembeli! 👋",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -112,7 +115,7 @@ fun HomeScreen(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
                     unfocusedBorderColor = Color.LightGray,
-                    focusedBorderColor = Color(0xFF1976D2)
+                    focusedBorderColor = Color(0xFF185FA5)
                 ),
                 singleLine = true
             )
@@ -124,9 +127,9 @@ fun HomeScreen(
                     .padding(4.dp)
             ) {
                 if (isRefreshing) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF1976D2), strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color(0xFF185FA5), strokeWidth = 2.dp)
                 } else {
-                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF1976D2))
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = Color(0xFF185FA5))
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -140,6 +143,78 @@ fun HomeScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Action Cards (Stores and Popular Products)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Card(
+                onClick = onNavigateToStores,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(72.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color(0xFFE8F1FB), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🏪", fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text("Toko UMKM", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF282724))
+                        Text("Direktori toko", fontSize = 10.sp, color = Color(0xFF8A8980))
+                    }
+                }
+            }
+
+            Card(
+                onClick = onNavigateToPopularProducts,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(72.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color(0xFFFEF3E3), RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🔥", fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text("Produk Populer", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF282724))
+                        Text("Terlaris & favorit", fontSize = 10.sp, color = Color(0xFF8A8980))
+                    }
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Category Pills
@@ -149,7 +224,7 @@ fun HomeScreen(
         ) {
             item {
                 CategoryPill(
-                    name = "\uD83D\uDD25 Semua",
+                    name = "🔥 Semua",
                     isSelected = selectedCategory == null,
                     onClick = { viewModel.filterByCategory(null) }
                 )
@@ -176,7 +251,7 @@ fun HomeScreen(
         when (val state = productsState) {
             is UiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Color(0xFF185FA5))
                 }
             }
             is UiState.Error -> {
@@ -196,7 +271,7 @@ fun HomeScreen(
                     items(state.data) { product ->
                         ProductCard(
                             product = product,
-                            onClick = { /* Navigate to detail */ }
+                            onClick = { onProductClick(product.idProduct) }
                         )
                     }
                 }

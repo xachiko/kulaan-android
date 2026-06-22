@@ -292,4 +292,30 @@ class StoreRepository(private val sessionManager: SessionManager) {
             Result.failure(e)
         }
     }
+
+    suspend fun getStores(keyword: String? = null, category: String? = null): Result<com.kulaan.app.data.model.StoreListResponse> {
+        return try {
+            val response = api.getStores(keyword, category)
+            if (response.isSuccessful && response.body()?.success == true) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Gagal memuat daftar toko"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getStoreDetailPublic(id: Int): Result<com.kulaan.app.data.model.StoreDetailResponse> {
+        return try {
+            val response = api.getStoreDetailPublic(id)
+            if (response.isSuccessful && response.body()?.success == true) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Gagal memuat detail toko"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

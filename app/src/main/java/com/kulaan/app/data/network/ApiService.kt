@@ -1,13 +1,6 @@
 package com.kulaan.app.data.network
 
-import com.kulaan.app.data.model.AddProductResponse
-import com.kulaan.app.data.model.AuthResponse
-import com.kulaan.app.data.model.CategoryResponse
-import com.kulaan.app.data.model.LoginRequest
-import com.kulaan.app.data.model.ProductResponse
-import com.kulaan.app.data.model.RegisterRequest
-import com.kulaan.app.data.model.SellerProductResponse
-import com.kulaan.app.data.model.StoreResponse
+import com.kulaan.app.data.model.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -114,5 +107,94 @@ interface ApiService {
         @Part("category_name") categoryName: RequestBody,
         @Part productImage: MultipartBody.Part?
     ): Response<AddProductResponse>
+
+    // ── Public / Buyer Products & Stores ───────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("products/popular")
+    suspend fun getPopularProducts(): Response<PopularProductsResponse>
+
+    @Headers("Accept: application/json")
+    @GET("products/{id}")
+    suspend fun getProductDetail(
+        @Path("id") id: Int
+    ): Response<ProductDetailResponse>
+
+    @Headers("Accept: application/json")
+    @GET("stores")
+    suspend fun getStores(
+        @Query("keyword") keyword: String? = null,
+        @Query("category") category: String? = null
+    ): Response<StoreListResponse>
+
+    @Headers("Accept: application/json")
+    @GET("stores/{id}")
+    suspend fun getStoreDetailPublic(
+        @Path("id") id: Int
+    ): Response<StoreDetailResponse>
+
+    // ── Buyer Orders ─────────────────────────────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("orders")
+    suspend fun getOrders(): Response<OrderListResponse>
+
+    @Headers("Accept: application/json")
+    @GET("orders/{id}")
+    suspend fun getOrderDetail(
+        @Path("id") id: Int
+    ): Response<OrderDetailResponse>
+
+    @Headers("Accept: application/json")
+    @POST("orders")
+    suspend fun createOrder(
+        @Body request: StoreOrderRequest
+    ): Response<OrderDetailResponse>
+
+    // ── Notifications ───────────────────────────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("notifications")
+    suspend fun getNotifications(): Response<NotificationListResponse>
+
+    @Headers("Accept: application/json")
+    @POST("notifications/mark-read")
+    suspend fun markAllNotificationsAsRead(): Response<NotificationActionResponse>
+
+    @Headers("Accept: application/json")
+    @POST("notifications/{id}/read")
+    suspend fun markNotificationAsRead(
+        @Path("id") id: Int
+    ): Response<NotificationActionResponse>
+
+    // ── Seller Operations ───────────────────────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("seller/dashboard")
+    suspend fun getSellerDashboard(): Response<SellerDashboardResponse>
+
+    @Headers("Accept: application/json")
+    @GET("seller/orders/{id}")
+    suspend fun getSellerOrderDetail(
+        @Path("id") id: Int
+    ): Response<OrderDetailResponse>
+
+    @Headers("Accept: application/json")
+    @PUT("seller/orders/{id}/status")
+    suspend fun updateOrderStatus(
+        @Path("id") id: Int,
+        @Body body: Map<String, String>
+    ): Response<NotificationActionResponse>
+
+    // ── Auth Profile & Session ──────────────────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("auth/me")
+    suspend fun getMe(): Response<UserMeResponse>
+
+    @Headers("Accept: application/json")
+    @PUT("auth/profile")
+    suspend fun updateProfile(
+        @Body body: Map<String, String?>
+    ): Response<UserMeResponse>
+
+    @Headers("Accept: application/json")
+    @POST("auth/logout")
+    suspend fun logout(): Response<NotificationActionResponse>
 }
 

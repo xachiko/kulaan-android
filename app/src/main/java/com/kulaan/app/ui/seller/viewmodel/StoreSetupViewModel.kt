@@ -48,27 +48,90 @@ class StoreSetupViewModel(
         loadInitialData()
     }
 
+    private fun parseOperatingHours(operatingHours: String?): StoreSetupFormState? {
+        if (operatingHours.isNullOrBlank()) return null
+        return try {
+            val parts = operatingHours.split(": ")
+            if (parts.size < 2) return null
+            val daysStr = parts[0]
+            val timeRange = parts[1]
+            
+            val times = timeRange.split("-")
+            if (times.size < 2) return null
+            val openTime = times[0].trim()
+            val closeTime = times[1].trim()
+            
+            val openEveryDay = daysStr.equals("Setiap hari", ignoreCase = true)
+            val selectedDays = if (openEveryDay) {
+                setOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+            } else {
+                daysStr.split(",").map { it.trim() }.toSet()
+            }
+            
+            StoreSetupFormState(
+                openEveryDay = openEveryDay,
+                selectedDays = selectedDays,
+                openTime = openTime,
+                closeTime = closeTime
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun loadInitialData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingCategories = true) }
-            val result = repository.getCategories()
-            result.onSuccess { response ->
-                val fetchedCategories = if (response.data.isNotEmpty()) response.data else DUMMY_CATEGORIES
-                _uiState.update {
-                    it.copy(
-                        categories = fetchedCategories,
-                        isLoadingCategories = false,
-                        districts = JEBRES_KELURAHAN.toList()
-                    )
+            val categoryResult = repository.getCategories()
+            val fetchedCategories = if (categoryResult.isSuccess) {
+                val data = categoryResult.getOrNull()?.data
+                if (!data.isNullOrEmpty()) data else DUMMY_CATEGORIES
+            } else {
+                DUMMY_CATEGORIES
+            }
+
+            _uiState.update {
+                it.copy(
+                    categories = fetchedCategories,
+                    districts = JEBRES_KELURAHAN.toList()
+                )
+            }
+
+            if (sessionManager.hasStore()) {
+                val storeResult = repository.getStoreProfile()
+                storeResult.onSuccess { storeResponse ->
+                    val store = storeResponse.data
+                    if (store != null) {
+                        val parsedHours = parseOperatingHours(store.operatingHours)
+                        
+                        val matchedCategoryId = fetchedCategories.find { 
+                            it.nameCategory.equals(store.categoryName, ignoreCase = true) 
+                        }?.idCategory ?: store.idCategory
+                        
+                        _uiState.update {
+                            it.copy(
+                                formState = StoreSetupFormState(
+                                    storeName = store.storeName,
+                                    description = store.description ?: "",
+                                    address = store.address ?: "",
+                                    selectedDistrict = store.district ?: "",
+                                    selectedCategoryId = matchedCategoryId,
+                                    openEveryDay = parsedHours?.openEveryDay ?: true,
+                                    selectedDays = parsedHours?.selectedDays ?: setOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"),
+                                    openTime = parsedHours?.openTime ?: "08:00",
+                                    closeTime = parsedHours?.closeTime ?: "17:00"
+                                ),
+                                isLoadingCategories = false
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(isLoadingCategories = false) }
+                    }
+                }.onFailure {
+                    _uiState.update { it.copy(isLoadingCategories = false) }
                 }
-            }.onFailure {
-                _uiState.update {
-                    it.copy(
-                        categories = DUMMY_CATEGORIES,
-                        isLoadingCategories = false,
-                        districts = JEBRES_KELURAHAN.toList()
-                    )
-                }
+            } else {
+                _uiState.update { it.copy(isLoadingCategories = false) }
             }
         }
     }
@@ -171,16 +234,29 @@ class StoreSetupViewModel(
             }
 
             val operatingHours = getOperatingHoursText()
-            val result = repository.createStore(
-                storeName = form.storeName,
-                description = form.description.ifBlank { null },
-                address = form.address.ifBlank { null },
-                district = form.selectedDistrict.ifBlank { null },
-                operatingHours = operatingHours,
-                category = categoryName,
-                logoUri = form.logoUri,
-                context = context
-            )
+            val result = if (sessionManager.hasStore()) {
+                repository.updateStore(
+                    storeName = form.storeName,
+                    description = form.description.ifBlank { null },
+                    address = form.address.ifBlank { null },
+                    district = form.selectedDistrict.ifBlank { null },
+                    operatingHours = operatingHours,
+                    category = categoryName,
+                    logoUri = form.logoUri,
+                    context = context
+                )
+            } else {
+                repository.createStore(
+                    storeName = form.storeName,
+                    description = form.description.ifBlank { null },
+                    address = form.address.ifBlank { null },
+                    district = form.selectedDistrict.ifBlank { null },
+                    operatingHours = operatingHours,
+                    category = categoryName,
+                    logoUri = form.logoUri,
+                    context = context
+                )
+            }
             result.onSuccess {
                 sessionManager.setHasStore(true)
                 _uiState.update { it.copy(submitState = UiState.Success(Unit)) }

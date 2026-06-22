@@ -21,10 +21,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.kulaan.app.MainActivity
+import com.kulaan.app.utils.SessionManager
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val title: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Beranda")
@@ -34,7 +37,9 @@ sealed class BottomNavItem(val route: String, val icon: ImageVector, val title: 
 }
 
 @Composable
-fun BuyerBottomNavigation() {
+fun BuyerBottomNavigation(
+    sessionManager: SessionManager
+) {
     val navController = rememberNavController()
 
     Scaffold(
@@ -77,51 +82,85 @@ fun BuyerBottomNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    onNavigateToStores = { navController.navigate("stores") },
+                    onNavigateToPopularProducts = { navController.navigate("popular_products") },
+                    onProductClick = { productId -> navController.navigate("product_detail/$productId") }
+                )
             }
             composable(BottomNavItem.Orders.route) {
-                PlaceholderScreen("Pesanan Saya")
+                MyOrdersScreen(sessionManager = sessionManager)
             }
             composable(BottomNavItem.Notifications.route) {
-                PlaceholderScreen("Notifikasi")
+                NotificationScreen(sessionManager = sessionManager)
             }
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen()
+                UserProfileScreen(sessionManager = sessionManager)
             }
-        }
-    }
-}
-
-@Composable
-fun PlaceholderScreen(title: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = title, style = MaterialTheme.typography.headlineMedium)
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val userPreferences = remember { com.kulaan.app.data.local.UserPreferences(context) }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Profil Saya", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.padding(16.dp))
-            Button(
-                onClick = {
-                    scope.launch {
-                        userPreferences.clear()
-                        val intent = Intent(context, MainActivity::class.java).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            composable(
+                route = "product_detail/{productId}",
+                arguments = listOf(navArgument("productId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getInt("productId") ?: 0
+                ProductDetailScreen(
+                    productId = productId,
+                    onBackClick = { navController.popBackStack() },
+                    onStoreClick = { storeId -> navController.navigate("store_detail/$storeId") },
+                    onOrderClick = { prodId, qty -> navController.navigate("checkout/$prodId/$qty") },
+                    sessionManager = sessionManager
+                )
+            }
+            composable(
+                route = "checkout/{productId}/{quantity}",
+                arguments = listOf(
+                    navArgument("productId") { type = NavType.IntType },
+                    navArgument("quantity") { type = NavType.IntType }
+                )
+            ) { backStackEntry ->
+                val productId = backStackEntry.arguments?.getInt("productId") ?: 0
+                val quantity = backStackEntry.arguments?.getInt("quantity") ?: 1
+                CheckoutScreen(
+                    productId = productId,
+                    initialQuantity = quantity,
+                    onBackClick = { navController.popBackStack() },
+                    onGoToProfile = {
+                        navController.navigate(BottomNavItem.Profile.route) {
+                            popUpTo(BottomNavItem.Home.route)
                         }
-                        context.startActivity(intent)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text(text = "Logout (Keluar)")
+                    },
+                    onOrderSuccess = {
+                        navController.navigate(BottomNavItem.Orders.route) {
+                            popUpTo(BottomNavItem.Home.route)
+                        }
+                    },
+                    sessionManager = sessionManager
+                )
+            }
+            composable("stores") {
+                StoreListScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onStoreClick = { storeId -> navController.navigate("store_detail/$storeId") },
+                    sessionManager = sessionManager
+                )
+            }
+            composable(
+                route = "store_detail/{storeId}",
+                arguments = listOf(navArgument("storeId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val storeId = backStackEntry.arguments?.getInt("storeId") ?: 0
+                StoreDetailScreen(
+                    storeId = storeId,
+                    onBackClick = { navController.popBackStack() },
+                    onProductClick = { productId -> navController.navigate("product_detail/$productId") },
+                    sessionManager = sessionManager
+                )
+            }
+            composable("popular_products") {
+                PopularProductsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onProductClick = { productId -> navController.navigate("product_detail/$productId") },
+                    sessionManager = sessionManager
+                )
             }
         }
     }

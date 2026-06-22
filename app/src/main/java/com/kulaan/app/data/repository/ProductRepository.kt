@@ -16,4 +16,12 @@ class ProductRepository(private val sessionManager: SessionManager) {
     suspend fun getCategories(): Response<CategoryResponse> {
         return api.getCategories()
     }
+
+    suspend fun getProductDetail(id: Int): Response<com.kulaan.app.data.model.ProductDetailResponse> {
+        return api.getProductDetail(id)
+    }
+
+    suspend fun getPopularProducts(): Response<com.kulaan.app.data.model.PopularProductsResponse> {
+        return api.getPopularProducts()
+    }
 }

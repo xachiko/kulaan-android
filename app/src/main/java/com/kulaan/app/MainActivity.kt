@@ -25,6 +25,7 @@ import com.kulaan.app.data.repository.StoreRepository
 import com.kulaan.app.ui.auth.AuthScreen
 import com.kulaan.app.ui.auth.AuthViewModel
 import com.kulaan.app.ui.auth.AuthViewModelFactory
+import com.kulaan.app.ui.auth.RolePickerScreen
 import com.kulaan.app.ui.seller.SellerBottomNavigation
 import com.kulaan.app.ui.seller.StoreSetupScreen
 import com.kulaan.app.ui.theme.KulaanTheme
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
 
         val userPreferences = UserPreferences(this)
         val sessionManager = SessionManager(this)
-        val authRepository = AuthRepository()
+        val authRepository = AuthRepository(sessionManager)
         val authViewModelFactory = AuthViewModelFactory(authRepository, userPreferences, sessionManager)
 
         setContent {
@@ -120,7 +121,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("buyer_dashboard") {
-                            com.kulaan.app.ui.buyer.BuyerBottomNavigation()
+                            com.kulaan.app.ui.buyer.BuyerBottomNavigation(sessionManager = sessionManager)
                         }
                         composable("seller_dashboard") {
                             val context = LocalContext.current
@@ -170,9 +171,18 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         composable("role_picker") {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Role Picker Screen")
-                            }
+                            RolePickerScreen(
+                                onNavigateToBuyer = {
+                                    navController.navigate("buyer_dashboard") {
+                                        popUpTo("role_picker") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToSeller = {
+                                    navController.navigate("seller_dashboard") {
+                                        popUpTo("role_picker") { inclusive = true }
+                                    }
+                                }
+                            )
                         }
                     }
                 }
