@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
+        android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="Kulaan"
@@ -12,9 +13,9 @@
         android:theme="@style/Theme.Kulaan"
         android:usesCleartextTraffic="true">
 
-        <!-- LAUNCHER → AuthActivity -->
+        <!-- LAUNCHER → MainActivity -->
         <activity
-            android:name=".ui.auth.AuthActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
