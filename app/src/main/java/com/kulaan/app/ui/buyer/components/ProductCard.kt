@@ -129,6 +129,7 @@ fun ProductCard(
                     fontSize = 10.sp,
                     color = Color.Gray,
                     maxLines = 1,
+                    minLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -137,6 +138,7 @@ fun ProductCard(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     maxLines = 2,
+                    minLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp
                 )
@@ -145,7 +147,9 @@ fun ProductCard(
                     text = priceString,
                     color = Color(0xFF1976D2),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    minLines = 1
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -165,7 +169,9 @@ fun ProductCard(
                         Text(
                             text = "${product.rating} (${product.reviewCount})",
                             fontSize = 10.sp,
-                            color = Color.Gray
+                            color = Color.Gray,
+                            maxLines = 1,
+                            minLines = 1
                         )
                     }
                 }
