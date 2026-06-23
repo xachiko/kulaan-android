@@ -84,7 +84,7 @@ class StoreSetupViewModel(
             _uiState.update { it.copy(isLoadingCategories = true) }
             val categoryResult = repository.getCategories()
             val fetchedCategories = if (categoryResult.isSuccess) {
-                val data = categoryResult.getOrNull()?.data
+                val data = categoryResult.getOrNull()
                 if (!data.isNullOrEmpty()) data else DUMMY_CATEGORIES
             } else {
                 DUMMY_CATEGORIES

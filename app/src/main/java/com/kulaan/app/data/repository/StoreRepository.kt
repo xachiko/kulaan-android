@@ -199,11 +199,11 @@ class StoreRepository(private val sessionManager: SessionManager) {
         }
     }
 
-    suspend fun getCategories(): Result<CategoryResponse> {
+    suspend fun getCategories(): Result<List<com.kulaan.app.data.model.Category>> {
         return try {
             val response = api.getCategories()
-            if (response.isSuccessful && response.body()?.success == true) {
-                Result.success(response.body()!!)
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
             } else {
                 Result.failure(Exception("Gagal memuat kategori"))
             }

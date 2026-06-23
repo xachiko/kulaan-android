@@ -35,7 +35,7 @@ interface ApiService {
 
     @Headers("Accept: application/json")
     @GET("categories")
-    suspend fun getCategories(): Response<CategoryResponse>
+    suspend fun getCategories(): Response<List<Category>>
 
     @Multipart
     @Headers("Accept: application/json")

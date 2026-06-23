@@ -1,6 +1,7 @@
 package com.kulaan.app.ui.buyer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -234,8 +235,9 @@ fun HomeScreen(
                 )
             }
             items(categoriesState) { category ->
+                val emoji = getCategoryEmoji(category.nameCategory)
                 CategoryPill(
-                    name = category.nameCategory,
+                    name = "$emoji ${category.nameCategory.lowercase()}",
                     isSelected = selectedCategory == category.idCategory,
                     onClick = { viewModel.filterByCategory(category.idCategory) }
                 )
@@ -335,11 +337,13 @@ fun CategoryPill(
 ) {
     val backgroundColor = if (isSelected) Color(0xFF1976D2) else Color.White
     val contentColor = if (isSelected) Color.White else Color.DarkGray
+    val borderColor = if (isSelected) Color.Transparent else Color(0xFFE0E0E0)
 
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(20.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
@@ -349,5 +353,25 @@ fun CategoryPill(
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
+    }
+}
+
+fun getCategoryEmoji(name: String): String {
+    return when (name.lowercase()) {
+        "pakaian" -> "👕"
+        "fashion & aksesoris" -> "🕶️"
+        "makanan & minuman" -> "🍱"
+        "perawatan & kecantikan" -> "💄"
+        "perlengkapan rumah" -> "🏠"
+        "hobi & koleksi" -> "🎨"
+        "kesehatan" -> "💊"
+        "olahraga & outdoor" -> "⚽"
+        "buku & alat tulis" -> "📚"
+        "kerajinan tangan" -> "🧶"
+        "sembako & kebutuhan pokok" -> "🛒"
+        "jasa & layanan" -> "🛠️"
+        "katering" -> "🥘"
+        "lain lain", "lain-lain" -> "📦"
+        else -> "🏷️"
     }
 }
