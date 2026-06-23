@@ -82,7 +82,7 @@ fun AddProductScreen(
     LaunchedEffect(Unit) {
         val result = repository.getCategories()
         result.onSuccess { 
-            categories = if (it.data.isNotEmpty()) it.data else defaultCategories
+            categories = if (it.isNotEmpty()) it else defaultCategories
         }.onFailure {
             categories = defaultCategories
         }

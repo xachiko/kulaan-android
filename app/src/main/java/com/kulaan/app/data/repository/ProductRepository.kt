@@ -13,7 +13,7 @@ class ProductRepository(private val sessionManager: SessionManager) {
         return api.getProducts(keyword = search, category = category, page = page)
     }
 
-    suspend fun getCategories(): Response<CategoryResponse> {
+    suspend fun getCategories(): Response<List<com.kulaan.app.data.model.Category>> {
         return api.getCategories()
     }
 

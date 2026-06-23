@@ -61,8 +61,8 @@ class ProductViewModel(private val sessionManager: SessionManager) : ViewModel()
         viewModelScope.launch {
             try {
                 val response = repository.getCategories()
-                if (response.isSuccessful && response.body()?.success == true) {
-                    _categoriesState.value = response.body()?.data ?: emptyList()
+                if (response.isSuccessful) {
+                    _categoriesState.value = response.body() ?: emptyList()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -114,6 +114,7 @@ class ProductViewModel(private val sessionManager: SessionManager) : ViewModel()
     }
 
     fun refresh() {
+        loadCategories()
         loadProducts(isRefresh = true)
     }
 

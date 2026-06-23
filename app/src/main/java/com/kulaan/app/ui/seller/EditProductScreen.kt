@@ -94,7 +94,7 @@ fun EditProductScreen(
 
         val result = repository.getCategories()
         result.onSuccess { 
-            categories = if (it.data.isNotEmpty()) it.data else defaultCategories
+            categories = if (it.isNotEmpty()) it else defaultCategories
             if (product?.category != null) {
                 // Attempt to match category
                 selectedCategoryId = categories.find { cat -> cat.nameCategory.equals(product.category.nameCategory, ignoreCase = true) }?.idCategory

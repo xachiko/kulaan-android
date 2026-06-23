@@ -10,7 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -39,16 +39,18 @@ fun ProductCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .height(270.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // 1. Bagian Atas: Gambar / Thumbnail Tempat Produk
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(135.dp)
             ) {
                 if (product.imageUrl != null) {
                     AsyncImage(
@@ -61,15 +63,15 @@ fun ProductCard(
                     val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
                     val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
                     val thumbGradients = listOf(
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
+                        Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
+                        Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
+                        Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
+                        Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
+                        Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
+                        Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
+                        Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
+                        Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
+                        Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
                     )
                     val gradient = thumbGradients[product.idProduct % thumbGradients.size]
                     Box(
@@ -82,7 +84,7 @@ fun ProductCard(
                     }
                 }
 
-                // Category Badge
+                // Badge Kategori
                 if (product.category?.nameCategory != null) {
                     Box(
                         modifier = Modifier
@@ -99,7 +101,7 @@ fun ProductCard(
                     }
                 }
 
-                // TUTUP overlay
+                // Overlay Toko Tutup
                 if (!isOpen) {
                     Box(
                         modifier = Modifier
@@ -123,56 +125,61 @@ fun ProductCard(
                 }
             }
 
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    text = product.store?.storeName ?: "Toko Tidak Diketahui",
-                    fontSize = 10.sp,
-                    color = Color.Gray,
-                    maxLines = 1,
-                    minLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = product.name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    maxLines = 2,
-                    minLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = priceString,
-                    color = Color(0xFF1976D2),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    minLines = 1
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = "Rating",
-                            tint = Color(0xFFFFB300),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${product.rating} (${product.reviewCount})",
-                            fontSize = 10.sp,
-                            color = Color.Gray,
-                            maxLines = 1,
-                            minLines = 1
-                        )
+            // 2. Bagian Bawah: Informasi Detail Produk (Menggunakan SpaceBetween agar sejajar)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Kelompok Teks Atas (Nama Toko & Produk)
+                Column {
+                    Text(
+                        text = product.store?.storeName ?: "Toko Tidak Diketahui",
+                        fontSize = 10.sp,
+                        color = Color.Gray,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = product.name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 18.sp
+                    )
+                }
+
+                // Kelompok Teks Bawah (Harga & Rating)
+                Column {
+                    Text(
+                        text = priceString,
+                        color = Color(0xFF1976D2),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = "Rating",
+                                tint = Color(0xFFFFB300),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${product.rating} (${product.reviewCount})",
+                                fontSize = 10.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
                 }
             }
