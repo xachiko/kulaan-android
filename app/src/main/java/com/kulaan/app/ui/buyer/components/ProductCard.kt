@@ -10,7 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +46,7 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
+            // 1. Bagian Atas: Gambar / Thumbnail Tempat Produk
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,15 +63,15 @@ fun ProductCard(
                     val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
                     val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
                     val thumbGradients = listOf(
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
-                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
+                        Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
+                        Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
+                        Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
+                        Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
+                        Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
+                        Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
+                        Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
+                        Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
+                        Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
                     )
                     val gradient = thumbGradients[product.idProduct % thumbGradients.size]
                     Box(
@@ -83,7 +84,7 @@ fun ProductCard(
                     }
                 }
 
-                // Category Badge
+                // Badge Kategori
                 if (product.category?.nameCategory != null) {
                     Box(
                         modifier = Modifier
@@ -100,7 +101,7 @@ fun ProductCard(
                     }
                 }
 
-                // TUTUP overlay
+                // Overlay Toko Tutup
                 if (!isOpen) {
                     Box(
                         modifier = Modifier
@@ -124,12 +125,14 @@ fun ProductCard(
                 }
             }
 
+            // 2. Bagian Bawah: Informasi Detail Produk (Menggunakan SpaceBetween agar sejajar)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+                // Kelompok Teks Atas (Nama Toko & Produk)
                 Column {
                     Text(
                         text = product.store?.storeName ?: "Toko Tidak Diketahui",
@@ -149,6 +152,7 @@ fun ProductCard(
                     )
                 }
 
+                // Kelompok Teks Bawah (Harga & Rating)
                 Column {
                     Text(
                         text = priceString,
