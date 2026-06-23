@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,13 +29,14 @@ import com.kulaan.app.data.model.Store
 import com.kulaan.app.ui.theme.PrimaryBlue
 import com.kulaan.app.ui.theme.TextSecondary
 import com.kulaan.app.utils.UiState
+import com.kulaan.app.utils.toFullImageUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreProfileScreen(
     storeState: UiState<Store>,
     onEditProfile: () -> Unit,
-    onAddProduct: () -> Unit
+    onBack: () -> Unit
 ) {
     val scrollState = rememberScrollState()
 
@@ -78,12 +80,27 @@ fun StoreProfileScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(PrimaryBlue)
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Kembali",
+                            tint = Color.White
+                        )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         AsyncImage(
-                            model = store.storeLogo,
+                            model = store.storeLogo.toFullImageUrl(),
                             contentDescription = "Logo Toko",
                             modifier = Modifier
                                 .size(80.dp)
@@ -99,8 +116,8 @@ fun StoreProfileScreen(
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(6.dp))
-                        val statusBadge = when (store.status) {
-                            "aktif" -> Pair("Aktif", Color(0xFF4CAF50))
+                        val statusBadge = when (store.verificationStatus) {
+                            "disetujui" -> Pair("Aktif", Color(0xFF4CAF50))
                             "ditolak" -> Pair("Ditolak", Color(0xFFE24B4A))
                             else -> Pair("Menunggu Verifikasi", Color(0xFFFFA726))
                         }
@@ -184,52 +201,6 @@ fun StoreProfileScreen(
                     Text("Edit Profil")
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Produk Unggulan Section
-                Text(
-                    text = "Produk Unggulan",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            Icons.Default.Store,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Belum ada produk",
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Button(
-                            onClick = onAddProduct,
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                        ) {
-                            Text("+ Tambah Produk", fontSize = 13.sp)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

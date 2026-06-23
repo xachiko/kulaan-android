@@ -28,6 +28,8 @@ import coil.compose.AsyncImage
 import com.kulaan.app.data.model.Store
 import com.kulaan.app.data.repository.StoreRepository
 import com.kulaan.app.utils.SessionManager
+import com.kulaan.app.utils.StoreUtils
+import com.kulaan.app.utils.toFullImageUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -231,7 +233,7 @@ private fun StoreCard(
         ) {
             if (store.storeLogo != null) {
                 AsyncImage(
-                    model = store.storeLogo,
+                    model = store.storeLogo.toFullImageUrl(),
                     contentDescription = store.storeName,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -253,6 +255,7 @@ private fun StoreCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                val isClosed = !StoreUtils.isStoreOpen(store.operatingHours)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = store.storeName,
@@ -275,6 +278,22 @@ private fun StoreCard(
                             color = Color(0xFF185FA5),
                             fontWeight = FontWeight.Bold
                         )
+                    }
+                    if (isClosed) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFFCEBEB), RoundedCornerShape(100.dp))
+                                .border(1.dp, Color(0xFFE24B4A), RoundedCornerShape(100.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "TUTUP",
+                                fontSize = 8.sp,
+                                color = Color(0xFFE24B4A),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
                 Text(

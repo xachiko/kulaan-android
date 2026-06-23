@@ -1,9 +1,12 @@
 package com.kulaan.app.ui.seller
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.kulaan.app.utils.toFullImageUrl
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -153,14 +156,42 @@ fun SellerProductCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row {
-                AsyncImage(
-                    model = product.imageUrl,
-                    contentDescription = product.name,
-                    modifier = Modifier
-                        .size(72.dp)
-                        .padding(end = 12.dp),
-                    contentScale = ContentScale.Crop
-                )
+                if (product.imageUrl != null) {
+                    AsyncImage(
+                        model = product.imageUrl.toFullImageUrl(),
+                        contentDescription = product.name,
+                        modifier = Modifier
+                            .size(72.dp)
+                            .padding(end = 12.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
+                    val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
+                    val thumbGradients = listOf(
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
+                    )
+                    val gradient = thumbGradients[product.idProduct % thumbGradients.size]
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .padding(end = 12.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(gradient),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = productEmoji, fontSize = 28.sp)
+                    }
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = product.name,

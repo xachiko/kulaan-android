@@ -67,17 +67,31 @@ fun SellerBottomNavigation(
                 )
 
                 items.forEach { item ->
+                    val selected = when (item) {
+                        SellerNavItem.Dashboard -> currentRoute == "dashboard"
+                        SellerNavItem.Products -> currentRoute == "products" || currentRoute == "add_product" || currentRoute?.startsWith("edit_product") == true
+                        SellerNavItem.Settings -> currentRoute == "settings" || currentRoute == "profile" || currentRoute == "edit_store"
+                    }
+
                     NavigationBarItem(
                         icon = { Icon(item.icon, contentDescription = item.title) },
                         label = { Text(item.title, fontSize = 11.sp) },
-                        selected = currentRoute == item.route,
+                        selected = selected,
                         onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
+                            if (currentRoute == item.route) {
+                                // Already at root, do nothing
+                            } else if (item == SellerNavItem.Products && (currentRoute == "add_product" || currentRoute?.startsWith("edit_product") == true)) {
+                                navController.popBackStack(SellerNavItem.Products.route, false)
+                            } else if (item == SellerNavItem.Settings && (currentRoute == "profile" || currentRoute == "edit_store")) {
+                                navController.popBackStack(SellerNavItem.Settings.route, false)
+                            } else {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
                             }
                         }
                     )
@@ -92,9 +106,6 @@ fun SellerBottomNavigation(
         ) {
             composable(SellerNavItem.Dashboard.route) {
                 SellerDashboardScreen(
-                    onKelolaProfil = {
-                        navController.navigate("profile")
-                    },
                     sessionManager = sessionManager
                 )
             }
@@ -130,11 +141,7 @@ fun SellerBottomNavigation(
                 StoreProfileScreen(
                     storeState = uiState.storeProfile,
                     onEditProfile = { navController.navigate("edit_store") },
-                    onAddProduct = {
-                        navController.navigate("add_product") {
-                            popUpTo(SellerNavItem.Products.route) { inclusive = true }
-                        }
-                    }
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable("edit_store") {

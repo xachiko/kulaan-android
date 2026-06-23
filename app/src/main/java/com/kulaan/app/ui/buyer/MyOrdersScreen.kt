@@ -29,13 +29,16 @@ import coil.compose.AsyncImage
 import com.kulaan.app.data.model.Order
 import com.kulaan.app.data.repository.OrderRepository
 import com.kulaan.app.utils.SessionManager
+import com.kulaan.app.utils.formatWhatsApp
+import com.kulaan.app.utils.toFullImageUrl
 import java.text.NumberFormat
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyOrdersScreen(
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    onRefreshBadges: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val repository = remember { OrderRepository(sessionManager) }
@@ -53,6 +56,7 @@ fun MyOrdersScreen(
                 val response = repository.getOrders()
                 if (response.isSuccessful && response.body()?.success == true) {
                     ordersList = response.body()?.data ?: emptyList()
+                    onRefreshBadges()
                 } else {
                     errorMessage = "Gagal memuat daftar pesanan."
                 }
@@ -152,7 +156,7 @@ fun MyOrdersScreen(
                                 val item = order.items.firstOrNull()
                                 val storePhone = item?.product?.store?.phoneNumber
                                 if (storePhone != null) {
-                                    val cleanPhone = storePhone.replace("[^0-9]".toRegex(), "")
+                                    val cleanPhone = storePhone.formatWhatsApp()
                                     val orderIdPadded = String.format("#ORD-%05d", order.idOrder)
                                     val statusStr = when (order.status) {
                                         "menunggu" -> "MENUNGGU"
@@ -255,7 +259,7 @@ private fun OrderCard(
                     ) {
                         if (product?.imageUrl != null) {
                             AsyncImage(
-                                model = product.imageUrl,
+                                model = product.imageUrl.toFullImageUrl(),
                                 contentDescription = product.name,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier

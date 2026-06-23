@@ -28,6 +28,8 @@ import com.kulaan.app.data.model.ProductDetail
 import com.kulaan.app.data.repository.ProductRepository
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.StoreUtils
+import com.kulaan.app.utils.formatWhatsApp
+import com.kulaan.app.utils.toFullImageUrl
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -148,7 +150,7 @@ fun ProductDetailScreen(
                         ) {
                             if (product.imageUrl != null) {
                                 AsyncImage(
-                                    model = product.imageUrl,
+                                    model = product.imageUrl.toFullImageUrl(),
                                     contentDescription = product.name,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier.fillMaxSize()
@@ -161,6 +163,28 @@ fun ProductDetailScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(productEmoji, fontSize = 96.sp)
+                                }
+                            }
+
+                            if (isClosed) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Red.copy(alpha = 0.4f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(Color(0xFFE24B4A), RoundedCornerShape(24.dp))
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = "TUTUP",
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 16.sp
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -273,7 +297,7 @@ fun ProductDetailScreen(
                                     ) {
                                         if (store.logo != null) {
                                             AsyncImage(
-                                                model = store.logo,
+                                                model = store.logo.toFullImageUrl(),
                                                 contentDescription = store.storeName,
                                                 contentScale = ContentScale.Crop,
                                                 modifier = Modifier
@@ -562,7 +586,7 @@ fun ProductDetailScreen(
                                 if (store?.phoneNumber != null) {
                                     OutlinedButton(
                                         onClick = {
-                                            val cleanPhone = store.phoneNumber.replace("[^0-9]".toRegex(), "")
+                                            val cleanPhone = store.phoneNumber.formatWhatsApp()
                                             val textMsg = "Halo, saya ingin memesan ${product.name} ($quantity ${product.unit ?: "pcs"}) seharga ${priceFormatter.format(totalPrice)}."
                                             val uri = Uri.parse("https://wa.me/$cleanPhone?text=${Uri.encode(textMsg)}")
                                             val intent = Intent(Intent.ACTION_VIEW, uri)

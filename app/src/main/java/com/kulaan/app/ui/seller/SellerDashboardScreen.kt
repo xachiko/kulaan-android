@@ -29,6 +29,7 @@ import com.kulaan.app.data.repository.SellerRepository
 import com.kulaan.app.ui.theme.PrimaryBlue
 import com.kulaan.app.ui.theme.TextSecondary
 import com.kulaan.app.utils.SessionManager
+import com.kulaan.app.utils.formatWhatsApp
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -36,7 +37,6 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SellerDashboardScreen(
-    onKelolaProfil: () -> Unit,
     sessionManager: SessionManager
 ) {
     val context = LocalContext.current
@@ -140,24 +140,6 @@ fun SellerDashboardScreen(
                         color = Color.White
                     )
                 }
-            }
-        }
-
-        // Kelola Profil button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            OutlinedButton(
-                onClick = onKelolaProfil,
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue)
-            ) {
-                Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text("Kelola Profil", fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -341,7 +323,7 @@ fun SellerDashboardScreen(
                             onWhatsAppClick = {
                                 val phone = order.buyerPhone
                                 if (phone != null) {
-                                    val cleanPhone = phone.replace("[^0-9]".toRegex(), "")
+                                    val cleanPhone = phone.formatWhatsApp()
                                     val orderIdPadded = String.format("#ORD-%05d", order.idOrder)
                                     val msg = "Halo ${order.buyerName ?: ""}, saya dari toko ${dashboardData?.store?.storeName ?: ""} ingin mengonfirmasi pesanan Anda $orderIdPadded."
                                     val uri = Uri.parse("https://wa.me/$cleanPhone?text=${Uri.encode(msg)}")

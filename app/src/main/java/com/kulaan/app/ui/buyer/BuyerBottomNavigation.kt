@@ -28,6 +28,11 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.kulaan.app.MainActivity
 import com.kulaan.app.utils.SessionManager
+import com.kulaan.app.ui.buyer.viewmodel.BuyerSharedViewModel
+import com.kulaan.app.ui.buyer.viewmodel.BuyerSharedViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val title: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Beranda")
@@ -41,15 +46,24 @@ fun BuyerBottomNavigation(
     sessionManager: SessionManager
 ) {
     val navController = rememberNavController()
+    val sharedViewModel: BuyerSharedViewModel = viewModel(
+        factory = BuyerSharedViewModelFactory(sessionManager)
+    )
+    val activeOrdersCount by sharedViewModel.activeOrdersCount.collectAsState()
+    val unreadNotificationsCount by sharedViewModel.unreadNotificationsCount.collectAsState()
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute) {
+        sharedViewModel.refreshBadges()
+    }
 
     Scaffold(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface
             ) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
                 val items = listOf(
                     BottomNavItem.Home,
                     BottomNavItem.Orders,
@@ -58,8 +72,31 @@ fun BuyerBottomNavigation(
                 )
 
                 items.forEach { item ->
+                    val badgeCount = when (item) {
+                        BottomNavItem.Orders -> activeOrdersCount
+                        BottomNavItem.Notifications -> unreadNotificationsCount
+                        else -> 0
+                    }
+
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.title) },
+                        icon = {
+                            if (badgeCount > 0) {
+                                BadgedBox(
+                                    badge = {
+                                        Badge(
+                                            containerColor = if (item == BottomNavItem.Notifications) Color(0xFF185FA5) else MaterialTheme.colorScheme.error,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text(badgeCount.toString(), fontSize = 9.sp)
+                                        }
+                                    }
+                                ) {
+                                    Icon(item.icon, contentDescription = item.title)
+                                }
+                            } else {
+                                Icon(item.icon, contentDescription = item.title)
+                            }
+                        },
                         label = { Text(item.title) },
                         selected = currentRoute == item.route,
                         onClick = {
@@ -89,10 +126,16 @@ fun BuyerBottomNavigation(
                 )
             }
             composable(BottomNavItem.Orders.route) {
-                MyOrdersScreen(sessionManager = sessionManager)
+                MyOrdersScreen(
+                    sessionManager = sessionManager,
+                    onRefreshBadges = { sharedViewModel.refreshBadges() }
+                )
             }
             composable(BottomNavItem.Notifications.route) {
-                NotificationScreen(sessionManager = sessionManager)
+                NotificationScreen(
+                    sessionManager = sessionManager,
+                    onRefreshBadges = { sharedViewModel.refreshBadges() }
+                )
             }
             composable(BottomNavItem.Profile.route) {
                 UserProfileScreen(sessionManager = sessionManager)
@@ -133,7 +176,8 @@ fun BuyerBottomNavigation(
                             popUpTo(BottomNavItem.Home.route)
                         }
                     },
-                    sessionManager = sessionManager
+                    sessionManager = sessionManager,
+                    onRefreshBadges = { sharedViewModel.refreshBadges() }
                 )
             }
             composable("stores") {
