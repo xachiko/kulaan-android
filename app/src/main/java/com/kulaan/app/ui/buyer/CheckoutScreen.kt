@@ -30,6 +30,8 @@ import com.kulaan.app.data.repository.AuthRepository
 import com.kulaan.app.data.repository.OrderRepository
 import com.kulaan.app.data.repository.ProductRepository
 import com.kulaan.app.utils.SessionManager
+import com.kulaan.app.utils.StoreUtils
+import com.kulaan.app.utils.formatWhatsApp
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -42,7 +44,8 @@ fun CheckoutScreen(
     onBackClick: () -> Unit,
     onGoToProfile: () -> Unit,
     onOrderSuccess: () -> Unit,
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    onRefreshBadges: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -58,6 +61,7 @@ fun CheckoutScreen(
     // Form inputs
     var name by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var shippingAddress by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var selectedPayment by remember { mutableStateOf("cod") } // "cod", "bank_transfer", "qris"
     var isSubmitting by remember { mutableStateOf(false) }
@@ -81,6 +85,7 @@ fun CheckoutScreen(
                 userProfile = user
                 name = user?.name ?: ""
                 phoneNumber = user?.phoneNumber ?: ""
+                shippingAddress = user?.address ?: ""
             }
         } catch (e: Exception) {
             errorMessage = "Terjadi kesalahan koneksi."
@@ -145,7 +150,7 @@ fun CheckoutScreen(
                 val product = productDetail!!
                 val store = product.store
                 val totalPrice = product.price * initialQuantity
-                val address = userProfile?.address
+                val isStoreClosed = !StoreUtils.isStoreOpen(product.store?.operatingHours)
 
                 Column(
                     modifier = Modifier.fillMaxSize()
@@ -157,6 +162,33 @@ fun CheckoutScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
+                        if (isStoreClosed) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFFFCEBEB), RoundedCornerShape(8.dp))
+                                    .border(1.dp, Color(0xFFE24B4A), RoundedCornerShape(8.dp))
+                                    .padding(16.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text("⚠️", fontSize = 20.sp)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = "Toko sedang tutup",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = Color(0xFFE24B4A)
+                                        )
+                                        Text(
+                                            text = "Pemesanan hanya dapat dilakukan selama jam operasional toko.",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFFE24B4A)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         // Section 1: Customer Details
                         Card(
                             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -197,68 +229,15 @@ fun CheckoutScreen(
                                     singleLine = true
                                 )
 
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                                Text("Alamat Pengiriman", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF8A8980))
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                if (!address.isNullOrBlank()) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(Color(0xFFF4F3F0), RoundedCornerShape(8.dp))
-                                            .border(1.dp, Color(0xFFE8E7E2), RoundedCornerShape(8.dp))
-                                            .padding(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = address,
-                                            fontSize = 13.sp,
-                                            color = Color(0xFF282724),
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = "Ubah",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF185FA5),
-                                            modifier = Modifier.clickable { onGoToProfile() }
-                                        )
-                                    }
-                                } else {
-                                    // Alamat Belum Diatur Alert
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(Color(0xFFFEF3E3), RoundedCornerShape(8.dp))
-                                            .border(1.dp, Color(0xFFFCD34D), RoundedCornerShape(8.dp))
-                                            .padding(12.dp)
-                                    ) {
-                                        Column {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Text("⚠️", fontSize = 16.sp)
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Text("Alamat Belum Diatur", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF92400E))
-                                            }
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = "Anda harus mengisi alamat pengiriman di profil sebelum membuat pesanan.",
-                                                fontSize = 12.sp,
-                                                color = Color(0xFFB45309)
-                                            )
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Button(
-                                                onClick = onGoToProfile,
-                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD97706)),
-                                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                                shape = RoundedCornerShape(4.dp)
-                                            ) {
-                                                Text("Atur Alamat Sekarang", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                        }
-                                    }
-                                }
+                                OutlinedTextField(
+                                    value = shippingAddress,
+                                    onValueChange = { shippingAddress = it },
+                                    label = { Text("Alamat Pengiriman") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    maxLines = 3
+                                )
                             }
                         }
 
@@ -377,7 +356,7 @@ fun CheckoutScreen(
                                             Toast.makeText(context, "Harap lengkapi Nama dan No. WhatsApp.", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
-                                        if (address.isNullOrBlank()) {
+                                        if (shippingAddress.isBlank()) {
                                             Toast.makeText(context, "Harap lengkapi alamat pengiriman.", Toast.LENGTH_SHORT).show()
                                             return@Button
                                         }
@@ -392,7 +371,7 @@ fun CheckoutScreen(
                                                     quantity = initialQuantity,
                                                     name = name,
                                                     phoneNumber = phoneNumber,
-                                                    shippingAddress = address,
+                                                    shippingAddress = shippingAddress,
                                                     paymentMethod = paymentMethodMapped,
                                                     note = note.ifBlank { null }
                                                 )
@@ -403,8 +382,8 @@ fun CheckoutScreen(
                                                     // Trigger WhatsApp redirection if phone exists
                                                     val storePhone = store?.phoneNumber
                                                     if (storePhone != null) {
-                                                        val cleanedPhone = storePhone.replace("[^0-9]".toRegex(), "")
-                                                        val messageTemplate = "Halo, saya $name telah memesan ${product.name} sebanyak $initialQuantity ${product.unit ?: "pcs"} dengan total ${priceFormatter.format(totalPrice)} melalui Kulaan.id.\n\nAlamat: $address\nCatatan: ${note.ifBlank { "-" }}\nMetode Pembayaran: ${selectedPayment.uppercase(Locale.getDefault())}"
+                                                        val cleanedPhone = storePhone.formatWhatsApp()
+                                                        val messageTemplate = "Halo, saya $name telah memesan ${product.name} sebanyak $initialQuantity ${product.unit ?: "pcs"} dengan total ${priceFormatter.format(totalPrice)} melalui Kulaan.id.\n\nAlamat: $shippingAddress\nCatatan: ${note.ifBlank { "-" }}\nMetode Pembayaran: ${selectedPayment.uppercase(Locale.getDefault())}"
                                                         val uri = Uri.parse("https://wa.me/$cleanedPhone?text=${Uri.encode(messageTemplate)}")
                                                         val waIntent = Intent(Intent.ACTION_VIEW, uri)
                                                         try {
@@ -413,9 +392,22 @@ fun CheckoutScreen(
                                                             // Fail silently or fallback
                                                         }
                                                     }
+                                                    onRefreshBadges()
                                                     onOrderSuccess()
                                                 } else {
-                                                    Toast.makeText(context, "Gagal membuat pesanan: ${response.message()}", Toast.LENGTH_LONG).show()
+                                                    val errorBody = response.errorBody()?.string()
+                                                    var errorMsg = "Gagal membuat pesanan."
+                                                    if (!errorBody.isNullOrBlank()) {
+                                                        try {
+                                                            val json = org.json.JSONObject(errorBody)
+                                                            errorMsg = json.optString("message", json.optString("error", errorMsg))
+                                                        } catch (ex: Exception) {
+                                                            errorMsg = "Gagal membuat pesanan (${response.code()})"
+                                                        }
+                                                    } else {
+                                                        errorMsg = "Gagal membuat pesanan: ${response.message()}"
+                                                    }
+                                                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                                                 }
                                             } catch (e: Exception) {
                                                 Toast.makeText(context, "Terjadi kesalahan koneksi.", Toast.LENGTH_SHORT).show()
@@ -424,7 +416,7 @@ fun CheckoutScreen(
                                             }
                                         }
                                     },
-                                    enabled = !isSubmitting && !address.isNullOrBlank() && name.isNotBlank() && phoneNumber.isNotBlank(),
+                                    enabled = !isSubmitting && !isStoreClosed && shippingAddress.isNotBlank() && name.isNotBlank() && phoneNumber.isNotBlank(),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF185FA5)),
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier.height(48.dp)

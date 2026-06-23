@@ -1,6 +1,10 @@
 package com.kulaan.app.ui.buyer
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -27,6 +31,8 @@ import com.kulaan.app.data.repository.StoreRepository
 import com.kulaan.app.ui.buyer.components.ProductCard
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.StoreUtils
+import com.kulaan.app.utils.formatWhatsApp
+import com.kulaan.app.utils.toFullImageUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,7 +147,7 @@ fun StoreDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     if (store.storeLogo != null) {
                                         AsyncImage(
-                                            model = store.storeLogo,
+                                            model = store.storeLogo.toFullImageUrl(),
                                             contentDescription = store.storeName,
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
@@ -160,14 +166,16 @@ fun StoreDetailScreen(
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
                                             Text(
                                                 text = store.storeName,
                                                 fontWeight = FontWeight.Bold,
                                                 fontSize = 16.sp,
                                                 color = Color(0xFF282724)
                                             )
-                                            Spacer(modifier = Modifier.width(6.dp))
                                             Box(
                                                 modifier = Modifier
                                                     .background(Color(0xFFE8F1FB), RoundedCornerShape(100.dp))
@@ -179,6 +187,21 @@ fun StoreDetailScreen(
                                                     color = Color(0xFF185FA5),
                                                     fontWeight = FontWeight.Bold
                                                 )
+                                            }
+                                            if (!isOpen) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .background(Color(0xFFFCEBEB), RoundedCornerShape(100.dp))
+                                                        .border(1.dp, Color(0xFFE24B4A), RoundedCornerShape(100.dp))
+                                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "TUTUP",
+                                                        fontSize = 8.sp,
+                                                        color = Color(0xFFE24B4A),
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
                                             }
                                         }
                                         Text(
@@ -226,6 +249,88 @@ fun StoreDetailScreen(
                                         fontSize = 12.sp,
                                         color = Color(0xFF5C5B54)
                                     )
+                                }
+
+                                // Kontak & Sosial Media Section
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Divider(color = Color(0xFFF4F3F0))
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "Kontak & Sosial Media",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = Color(0xFF282724)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    val context = androidx.compose.ui.platform.LocalContext.current
+                                    
+                                    // WhatsApp Button
+                                    Button(
+                                        onClick = {
+                                            if (!store.whatsapp.isNullOrBlank()) {
+                                                val cleanedPhone = store.whatsapp.formatWhatsApp()
+                                                val uri = Uri.parse("https://wa.me/$cleanedPhone")
+                                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    android.widget.Toast.makeText(context, "Gagal membuka WhatsApp.", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        },
+                                        enabled = !store.whatsapp.isNullOrBlank(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color.White,
+                                            contentColor = Color(0xFF25D366),
+                                            disabledContainerColor = Color(0xFFF5F5F5),
+                                            disabledContentColor = Color.Gray
+                                        ),
+                                        border = BorderStroke(1.dp, Color(0xFFD4E8D5)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = if (!store.whatsapp.isNullOrBlank()) "💬 WhatsApp" else "WhatsApp tidak tersedia",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+
+                                    // Instagram Button
+                                    Button(
+                                        onClick = {
+                                            if (!store.instagram.isNullOrBlank()) {
+                                                val igUsername = store.instagram.replace("@", "").trim()
+                                                val uri = Uri.parse("https://instagram.com/$igUsername")
+                                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                                try {
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    android.widget.Toast.makeText(context, "Gagal membuka Instagram.", android.widget.Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        },
+                                        enabled = !store.instagram.isNullOrBlank(),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFF4F3F0),
+                                            contentColor = Color(0xFF3E3D38),
+                                            disabledContainerColor = Color(0xFFF5F5F5),
+                                            disabledContentColor = Color.Gray
+                                        ),
+                                        border = BorderStroke(1.dp, Color(0xFFE8E7E2)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = if (!store.instagram.isNullOrBlank()) "📸 @${store.instagram.replace("@", "").trim()}" else "Instagram tidak tersedia",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp
+                                        )
+                                    }
                                 }
                             }
                         }

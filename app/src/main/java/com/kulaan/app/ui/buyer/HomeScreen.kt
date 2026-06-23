@@ -42,6 +42,10 @@ fun HomeScreen(
         factory = ProductViewModelFactory(SessionManager(LocalContext.current))
     )
 ) {
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+    val userName = remember { sessionManager.getName() ?: "Pembeli" }
+
     val productsState by viewModel.productsState.collectAsState()
     val categoriesState by viewModel.categoriesState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -81,7 +85,7 @@ fun HomeScreen(
         ) {
             Column {
                 Text(
-                    text = "Halo, Pembeli! 👋",
+                    text = "Halo, $userName! 👋",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp

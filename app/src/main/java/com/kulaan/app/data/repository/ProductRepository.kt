@@ -10,7 +10,7 @@ class ProductRepository(private val sessionManager: SessionManager) {
     private val api = ApiClient.getInstance(sessionManager)
 
     suspend fun getProducts(search: String?, category: Int?, page: Int): Response<ProductResponse> {
-        return api.getProducts(search = search, category = category, page = page)
+        return api.getProducts(keyword = search, category = category, page = page)
     }
 
     suspend fun getCategories(): Response<CategoryResponse> {

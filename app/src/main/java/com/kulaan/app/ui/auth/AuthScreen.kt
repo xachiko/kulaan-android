@@ -41,7 +41,8 @@ fun AuthScreen(
     viewModel: AuthViewModel,
     onNavigateToBuyer: () -> Unit,
     onNavigateToSeller: () -> Unit,
-    onShowRolePicker: () -> Unit
+    onShowRolePicker: () -> Unit,
+    onNavigateToAdmin: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -54,7 +55,9 @@ fun AuthScreen(
                     scope.launch { snackbarHostState.showSnackbar(it) }
                 }
                 val roles = result.user.roles
-                if (roles.contains("buyer") && roles.contains("seller")) {
+                if (roles.contains("admin")) {
+                    onNavigateToAdmin()
+                } else if (roles.contains("buyer") && roles.contains("seller")) {
                     onShowRolePicker()
                 } else if (roles.contains("seller")) {
                     onNavigateToSeller()

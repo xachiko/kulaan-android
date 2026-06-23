@@ -42,13 +42,6 @@ fun LoginContent(
     val focusManager = LocalFocusManager.current
 
     Column(modifier = Modifier.padding(24.dp)) {
-        RoleSelectionSection(
-            selectedRole = state.selectedRole,
-            onRoleSelected = onRoleSelected
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         AuthTextField(
             value = email,
             onValueChange = { email = it },

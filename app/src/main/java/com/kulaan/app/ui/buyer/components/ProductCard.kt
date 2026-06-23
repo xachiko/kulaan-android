@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.kulaan.app.data.model.Product
 import com.kulaan.app.utils.StoreUtils
+import com.kulaan.app.utils.toFullImageUrl
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -49,12 +50,37 @@ fun ProductCard(
                     .fillMaxWidth()
                     .height(140.dp)
             ) {
-                AsyncImage(
-                    model = product.imageUrl ?: "https://via.placeholder.com/150",
-                    contentDescription = product.name,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+                if (product.imageUrl != null) {
+                    AsyncImage(
+                        model = product.imageUrl.toFullImageUrl(),
+                        contentDescription = product.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
+                    val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
+                    val thumbGradients = listOf(
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF0FFF4), Color(0xFFC6F6D5))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF0F0), Color(0xFFFFD6D6))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFF3F0FF), Color(0xFFDDD6FF))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF9EE), Color(0xFFFEF3C7))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE8F4F0), Color(0xFFD1EDE5))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFDF3E3), Color(0xFFFDEDCC))),
+                        androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFCEBEB), Color(0xFFFDDDD8)))
+                    )
+                    val gradient = thumbGradients[product.idProduct % thumbGradients.size]
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(gradient),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = productEmoji, fontSize = 56.sp)
+                    }
+                }
 
                 // Category Badge
                 if (product.category?.nameCategory != null) {

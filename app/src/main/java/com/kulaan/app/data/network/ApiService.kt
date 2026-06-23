@@ -28,7 +28,7 @@ interface ApiService {
     @Headers("Accept: application/json")
     @GET("products")
     suspend fun getProducts(
-        @Query("search") search: String? = null,
+        @Query("keyword") keyword: String? = null,
         @Query("category") category: Int? = null,
         @Query("page") page: Int = 1
     ): Response<ProductResponse>
@@ -196,5 +196,17 @@ interface ApiService {
     @Headers("Accept: application/json")
     @POST("auth/logout")
     suspend fun logout(): Response<NotificationActionResponse>
+
+    // ── Admin Endpoints ─────────────────────────────────────────────────
+    @Headers("Accept: application/json")
+    @GET("admin/dashboard")
+    suspend fun getAdminDashboard(): Response<AdminDashboardResponse>
+
+    @Headers("Accept: application/json")
+    @POST("admin/stores/{id}/verify")
+    suspend fun verifyStore(
+        @Path("id") idStore: Int,
+        @Body request: VerifyStoreRequest
+    ): Response<NotificationActionResponse>
 }
 

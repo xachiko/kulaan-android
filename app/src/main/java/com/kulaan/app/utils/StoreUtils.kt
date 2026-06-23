@@ -6,86 +6,125 @@ import java.util.TimeZone
 object StoreUtils {
 
     fun isStoreOpen(operatingHours: String?): Boolean {
-        if (operatingHours.isNullOrBlank()) return false
+        if (operatingHours.isNullOrBlank()) return true
 
-        // Example formats: "Senin - Sabtu, 08:00 - 17:00" or "Setiap hari, 09:00 - 21:00"
         try {
-            val parts = operatingHours.split(",")
-            if (parts.size < 2) return true // Cannot parse format, assume open to be safe or false depending on business logic
+            // Normalize spaces and dashes
+            val normalized = operatingHours.replace(Regex("\\s+"), " ")
+                .replace("–", "-")
+                .replace("—", "-")
+                .trim()
 
-            val daysPart = parts[0].trim().lowercase()
-            val timesPart = parts[1].trim()
+            // 1. Parse time range using Regex
+            val timeRegex = Regex("(\\d{1,2})[:.](\\d{2})")
+            val matches = timeRegex.findAll(normalized).toList()
+            if (matches.size < 2) {
+                return true // default to open if times cannot be parsed
+            }
 
-            val timeRange = timesPart.split("-").map { it.trim() }
-            if (timeRange.size != 2) return true
+            val openHour = matches[0].groupValues[1].toInt()
+            val openMinute = matches[0].groupValues[2].toInt()
+            val closeHour = matches[1].groupValues[1].toInt()
+            val closeMinute = matches[1].groupValues[2].toInt()
 
-            val openTimeStr = timeRange[0]
-            val closeTimeStr = timeRange[1]
+            // 2. Parse day range / day list
+            val parts = normalized.split(Regex("[,:]"), 2)
+            val daysPart = if (parts.isNotEmpty()) parts[0].trim().lowercase() else normalized.lowercase()
 
-            val openTimeParts = openTimeStr.split(":")
-            val closeTimeParts = closeTimeStr.split(":")
-
-            if (openTimeParts.size != 2 || closeTimeParts.size != 2) return true
-
-            val openHour = openTimeParts[0].toIntOrNull() ?: 0
-            val openMinute = openTimeParts[1].toIntOrNull() ?: 0
-            val closeHour = closeTimeParts[0].toIntOrNull() ?: 0
-            val closeMinute = closeTimeParts[1].toIntOrNull() ?: 0
-
-            val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"))
-            val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // 1=Sunday, 2=Monday, ...
+            val calendar = Calendar.getInstance()
+            val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
             val currentMinute = calendar.get(Calendar.MINUTE)
 
-            // Map current day to Indonesian string or check ranges
-            val dayMap = mapOf(
-                Calendar.MONDAY to "senin",
-                Calendar.TUESDAY to "selasa",
-                Calendar.WEDNESDAY to "rabu",
-                Calendar.THURSDAY to "kamis",
-                Calendar.FRIDAY to "jumat",
-                Calendar.SATURDAY to "sabtu",
-                Calendar.SUNDAY to "minggu"
+            val weekdayMapping = mapOf(
+                "senin" to "sen", "sen" to "sen",
+                "selasa" to "sel", "sel" to "sel",
+                "rabu" to "rab", "rab" to "rab",
+                "kamis" to "kam", "kam" to "kam",
+                "jumat" to "jum", "jum'at" to "jum", "jum" to "jum",
+                "sabtu" to "sab", "sab" to "sab",
+                "minggu" to "min", "min" to "min", "ming" to "min"
             )
-            
-            val currentDayString = dayMap[currentDayOfWeek] ?: ""
 
-            val isOpenDay = if (daysPart.contains("setiap hari")) {
-                true
-            } else if (daysPart.contains("-")) {
-                val dayRange = daysPart.split("-").map { it.trim() }
-                if (dayRange.size == 2) {
-                    val startDayStr = dayRange[0]
-                    val endDayStr = dayRange[1]
-                    
-                    val daysList = listOf("senin", "selasa", "rabu", "kamis", "jumat", "sabtu", "minggu")
-                    val startIndex = daysList.indexOf(startDayStr)
-                    val endIndex = daysList.indexOf(endDayStr)
-                    val currentIndex = daysList.indexOf(currentDayString)
-                    
-                    if (startIndex != -1 && endIndex != -1 && currentIndex != -1) {
-                        currentIndex in startIndex..endIndex
-                    } else {
-                        true // fallback
+            val calendarDayMap = mapOf(
+                Calendar.MONDAY to "sen",
+                Calendar.TUESDAY to "sel",
+                Calendar.WEDNESDAY to "rab",
+                Calendar.THURSDAY to "kam",
+                Calendar.FRIDAY to "jum",
+                Calendar.SATURDAY to "sab",
+                Calendar.SUNDAY to "min"
+            )
+
+            val currentDayCode = calendarDayMap[currentDayOfWeek] ?: ""
+
+            val weekdayOrder = listOf("sen", "sel", "rab", "kam", "jum", "sab", "min")
+
+            var openEveryDay = false
+            val openDays = mutableListOf<String>()
+
+            if (daysPart.contains("setiap hari") || daysPart.contains("setiap-hari")) {
+                openEveryDay = true
+            } else {
+                // Match range pattern like "senin - sabtu" or "senin-sabtu"
+                val rangeRegex = Regex("(senin|selasa|rabu|kamis|jumat|sabtu|minggu|sen|sel|rab|kam|jum|sab|min)\\s*-\\s*(senin|selasa|rabu|kamis|jumat|sabtu|minggu|sen|sel|rab|kam|jum|sab|min)")
+                val rangeMatch = rangeRegex.find(daysPart)
+                if (rangeMatch != null) {
+                    val startDayName = rangeMatch.groupValues[1]
+                    val endDayName = rangeMatch.groupValues[2]
+                    val startKey = weekdayMapping[startDayName]
+                    val endKey = weekdayMapping[endDayName]
+                    if (startKey != null && endKey != null) {
+                        val startIndex = weekdayOrder.indexOf(startKey)
+                        val endIndex = weekdayOrder.indexOf(endKey)
+                        if (startIndex != -1 && endIndex != -1) {
+                            var i = startIndex
+                            while (true) {
+                                openDays.add(weekdayOrder[i])
+                                if (i == endIndex) break
+                                i = (i + 1) % 7
+                            }
+                        }
                     }
                 } else {
-                    true
+                    // Parse individual days separated by space, comma, slash
+                    val words = daysPart.split(Regex("[\\s,/;]+"))
+                    for (w in words) {
+                        val cleanWord = w.replace(Regex("[^a-z']"), "")
+                        val dayVal = weekdayMapping[cleanWord]
+                        if (dayVal != null) {
+                            if (!openDays.contains(dayVal)) {
+                                openDays.add(dayVal)
+                            }
+                        }
+                    }
                 }
-            } else {
-                daysPart.contains(currentDayString)
             }
 
-            if (!isOpenDay) return false
+            if (!openEveryDay) {
+                if (!openDays.contains(currentDayCode)) {
+                    return false
+                }
+            }
 
+            // 3. Time comparison
             val currentMinutesTotal = currentHour * 60 + currentMinute
             val openMinutesTotal = openHour * 60 + openMinute
             val closeMinutesTotal = closeHour * 60 + closeMinute
 
-            return currentMinutesTotal in openMinutesTotal..closeMinutesTotal
+            if (openMinutesTotal == closeMinutesTotal) {
+                return true // 00:00 - 00:00 or same times means open 24 hours
+            }
+
+            return if (openMinutesTotal <= closeMinutesTotal) {
+                currentMinutesTotal in openMinutesTotal..closeMinutesTotal
+            } else {
+                currentMinutesTotal >= openMinutesTotal || currentMinutesTotal <= closeMinutesTotal
+            }
 
         } catch (e: Exception) {
             e.printStackTrace()
-            return true // Fallback to true if parsing fails
+            return true // Fallback to open
         }
     }
 }

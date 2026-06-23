@@ -31,6 +31,7 @@ import com.kulaan.app.ui.seller.StoreSetupScreen
 import com.kulaan.app.ui.theme.KulaanTheme
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.UiState
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val scope = rememberCoroutineScope()
                     val token by userPreferences.authToken.collectAsState(initial = null)
                     val roles by userPreferences.userRoles.collectAsState(initial = null)
 
@@ -64,6 +66,11 @@ class MainActivity : ComponentActivity() {
                         } else {
                             // Logged in, navigate based on roles
                             when {
+                                roles!!.contains("admin") -> {
+                                    navController.navigate("admin_dashboard") {
+                                        popUpTo("splash") { inclusive = true }
+                                    }
+                                }
                                 roles!!.contains("buyer") && roles!!.contains("seller") -> {
                                     navController.navigate("role_picker") {
                                         popUpTo("splash") { inclusive = true }
@@ -115,6 +122,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onShowRolePicker = {
                                     navController.navigate("role_picker") {
+                                        popUpTo("auth") { inclusive = true }
+                                    }
+                                },
+                                onNavigateToAdmin = {
+                                    navController.navigate("admin_dashboard") {
                                         popUpTo("auth") { inclusive = true }
                                     }
                                 }
@@ -180,6 +192,27 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToSeller = {
                                     navController.navigate("seller_dashboard") {
                                         popUpTo("role_picker") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
+                        composable("admin_dashboard") {
+                            val adminRepo = remember { com.kulaan.app.data.repository.AdminRepository(sessionManager) }
+                            val adminViewModel: com.kulaan.app.ui.admin.AdminViewModel = viewModel(
+                                factory = com.kulaan.app.ui.admin.AdminViewModelFactory(adminRepo)
+                            )
+                            com.kulaan.app.ui.admin.AdminDashboardScreen(
+                                viewModel = adminViewModel,
+                                onLogoutClick = {
+                                    scope.launch {
+                                        try {
+                                            authRepository.logout()
+                                        } catch (e: Exception) {}
+                                        userPreferences.clear()
+                                        sessionManager.clearSession()
+                                        navController.navigate("auth") {
+                                            popUpTo("admin_dashboard") { inclusive = true }
+                                        }
                                     }
                                 }
                             )

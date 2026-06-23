@@ -27,7 +27,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    onRefreshBadges: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -44,6 +45,7 @@ fun NotificationScreen(
             val response = repository.getNotifications()
             if (response.isSuccessful && response.body()?.success == true) {
                 notificationsList = response.body()?.data ?: emptyList()
+                onRefreshBadges()
             } else {
                 errorMessage = "Gagal memuat notifikasi."
             }
@@ -80,6 +82,7 @@ fun NotificationScreen(
                                         val response = repository.markAllNotificationsAsRead()
                                         if (response.isSuccessful && response.body()?.success == true) {
                                             notificationsList = notificationsList.map { it.copy(isRead = 1) }
+                                            onRefreshBadges()
                                             Toast.makeText(context, "Semua notifikasi dibaca", Toast.LENGTH_SHORT).show()
                                         }
                                     } catch (e: Exception) {
@@ -165,6 +168,7 @@ fun NotificationScreen(
                                                 notificationsList = notificationsList.map {
                                                     if (it.idNotification == notification.idNotification) it.copy(isRead = 1) else it
                                                 }
+                                                onRefreshBadges()
                                             }
                                         } catch (e: Exception) {
                                             // Silent fail
