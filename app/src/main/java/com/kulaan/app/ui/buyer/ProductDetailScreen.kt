@@ -30,6 +30,8 @@ import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.StoreUtils
 import com.kulaan.app.utils.formatWhatsApp
 import com.kulaan.app.utils.toFullImageUrl
+import com.kulaan.app.utils.getProductPlaceholderEmoji
+import com.kulaan.app.utils.formatCategoryName
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -49,22 +51,25 @@ fun ProductDetailScreen(
 
     var isLoading by remember { mutableStateOf(true) }
     var productDetail by remember { mutableStateOf<ProductDetail?>(null) }
+    var isError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var quantity by remember { mutableStateOf(1) }
 
     LaunchedEffect(productId) {
         isLoading = true
-        errorMessage = null
+        isError = false
         try {
             val response = repository.getProductDetail(productId)
-            if (response.isSuccessful && response.body()?.success == true) {
-                val detail = response.body()?.data
+            if (response.isSuccessful && response.body() != null) {
+                val detail = response.body()!!.data
                 productDetail = detail
                 quantity = detail?.minOrder ?: 1
             } else {
+                isError = true
                 errorMessage = "Gagal memuat detail produk."
             }
         } catch (e: Exception) {
+            isError = true
             errorMessage = "Terjadi kesalahan jaringan."
         } finally {
             isLoading = false
@@ -102,7 +107,7 @@ fun ProductDetailScreen(
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color(0xFF185FA5))
                 }
-            } else if (errorMessage != null) {
+            } else if (isError) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -129,8 +134,7 @@ fun ProductDetailScreen(
                 val isClosed = !StoreUtils.isStoreOpen(store?.operatingHours)
                 val totalPrice = product.price * quantity
 
-                val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🍚", "🥘", "🍜", "🥗", "🍣")
-                val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
+                val productEmoji = getProductPlaceholderEmoji(product.category?.nameCategory, product.idProduct)
 
                 Column(
                     modifier = Modifier.fillMaxSize()
@@ -197,7 +201,7 @@ fun ProductDetailScreen(
                                 .padding(16.dp)
                         ) {
                             Text(
-                                text = product.category?.nameCategory?.uppercase(Locale.getDefault()) ?: "PRODUK",
+                                text = formatCategoryName(product.category?.nameCategory).uppercase(Locale.getDefault()),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF185FA5)

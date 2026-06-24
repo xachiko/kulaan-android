@@ -35,6 +35,7 @@ import com.kulaan.app.ui.buyer.viewmodel.ProductViewModel
 import com.kulaan.app.ui.buyer.viewmodel.ProductViewModelFactory
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.UiState
+import com.kulaan.app.utils.formatCategoryName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -252,7 +253,7 @@ fun HomeScreen(
             items(categoriesState) { category ->
                 val emoji = getCategoryEmoji(category.nameCategory)
                 CategoryPill(
-                    name = "$emoji ${category.nameCategory.lowercase()}",
+                    name = "$emoji ${formatCategoryName(category.nameCategory)}",
                     isSelected = selectedCategory == category.idCategory,
                     onClick = { viewModel.filterByCategory(category.idCategory) }
                 )
@@ -510,21 +511,18 @@ fun PriceRangePill(
 }
 
 fun getCategoryEmoji(name: String): String {
-    return when (name.lowercase()) {
-        "pakaian" -> "👕"
-        "fashion & aksesoris" -> "🕶️"
-        "makanan & minuman" -> "🍱"
-        "perawatan & kecantikan" -> "💄"
-        "perlengkapan rumah" -> "🏠"
-        "hobi & koleksi" -> "🎨"
-        "kesehatan" -> "💊"
-        "olahraga & outdoor" -> "⚽"
-        "buku & alat tulis" -> "📚"
-        "kerajinan tangan" -> "🧶"
-        "sembako & kebutuhan pokok" -> "🛒"
-        "jasa & layanan" -> "🛠️"
-        "katering" -> "🥘"
-        "lain lain", "lain-lain" -> "📦"
+    val clean = name.lowercase()
+    return when {
+        clean.contains("makanan") || clean.contains("minuman") || clean.contains("katering") -> "🍱"
+        clean.contains("fashion") || clean.contains("batik") || clean.contains("pakaian") -> "👕"
+        clean.contains("kerajinan") -> "🧶"
+        clean.contains("kecantikan") || clean.contains("perawatan") -> "💄"
+        clean.contains("pertanian") -> "🌱"
+        clean.contains("sembako") -> "🛒"
+        clean.contains("jasa") -> "🛠️"
+        clean.contains("elektronik") -> "⚡"
+        clean.contains("lain") -> "📦"
         else -> "🏷️"
     }
 }
+

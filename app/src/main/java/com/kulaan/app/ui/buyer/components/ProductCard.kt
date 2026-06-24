@@ -21,6 +21,8 @@ import coil.compose.AsyncImage
 import com.kulaan.app.data.model.Product
 import com.kulaan.app.utils.StoreUtils
 import com.kulaan.app.utils.toFullImageUrl
+import com.kulaan.app.utils.getProductPlaceholderEmoji
+import com.kulaan.app.utils.formatCategoryName
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -59,8 +61,7 @@ fun ProductCard(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
-                    val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
+                    val productEmoji = getProductPlaceholderEmoji(product.category?.nameCategory, product.idProduct)
                     val thumbGradients = listOf(
                         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
                         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),
@@ -92,7 +93,7 @@ fun ProductCard(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = product.category.nameCategory,
+                            text = formatCategoryName(product.category.nameCategory),
                             fontSize = 10.sp,
                             color = Color(0xFF1976D2),
                             fontWeight = FontWeight.Bold
