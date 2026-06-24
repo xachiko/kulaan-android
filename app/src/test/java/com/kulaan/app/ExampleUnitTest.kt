@@ -5,6 +5,9 @@ import org.junit.Test
 import org.junit.Assert.*
 import java.util.Calendar
 import java.util.TimeZone
+import com.kulaan.app.data.network.RetrofitInstance
+import kotlinx.coroutines.runBlocking
+
 
 class ExampleUnitTest {
     @Test
@@ -32,4 +35,44 @@ class ExampleUnitTest {
         println("Testing hours: $hours1 | Current Hour in Jakarta: $currentHour | Expected open: $expectedOpen | Actual open: $actualOpen")
         assertEquals(expectedOpen, actualOpen)
     }
+
+    @Test
+    fun testApiCategoriesAndProducts() {
+        try {
+            val categoriesUrl = java.net.URL("http://127.0.0.1:8000/api/categories")
+            val categoriesJson = categoriesUrl.readText()
+            println("CATEGORIES RESPONSE: $categoriesJson")
+
+            val productsUrl = java.net.URL("http://127.0.0.1:8000/api/products")
+            val productsJson = productsUrl.readText()
+            println("PRODUCTS RESPONSE: $productsJson")
+        } catch (e: Exception) {
+            println("API TEST FAILED: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    @Test
+    fun testRetrofitGetProductsCategory2() {
+        kotlinx.coroutines.runBlocking {
+            try {
+                // Let's call the api directly
+                val response = RetrofitInstance.api.getProducts(category = 2)
+                println("RETROFIT RESPONSE SUCCESS: ${response.isSuccessful}")
+                println("RETROFIT RESPONSE CODE: ${response.code()}")
+                val body = response.body()
+                println("RETROFIT RESPONSE BODY: $body")
+                if (body != null) {
+                    println("RETROFIT PRODUCTS COUNT: ${body.data.size}")
+                    for (p in body.data) {
+                        println("  Product: ${p.name} | Category: ${p.category?.nameCategory}")
+                    }
+                }
+            } catch (e: Exception) {
+                println("RETROFIT TEST FAILED: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
 }
+

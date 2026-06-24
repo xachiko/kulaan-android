@@ -167,8 +167,7 @@ fun SellerProductCard(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🌿", "🍚", "🥘", "🍜", "🥗", "🍣")
-                    val productEmoji = foodEmojis[product.idProduct % foodEmojis.size]
+                    val productEmoji = com.kulaan.app.utils.getProductPlaceholderEmoji(product.category?.nameCategory, product.idProduct)
                     val thumbGradients = listOf(
                         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFF3D6), Color(0xFFFFE8A3))),
                         androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFE6F0FF), Color(0xFFC5D8FF))),

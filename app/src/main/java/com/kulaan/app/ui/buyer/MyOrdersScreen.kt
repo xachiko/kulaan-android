@@ -31,6 +31,7 @@ import com.kulaan.app.data.repository.OrderRepository
 import com.kulaan.app.utils.SessionManager
 import com.kulaan.app.utils.formatWhatsApp
 import com.kulaan.app.utils.toFullImageUrl
+import com.kulaan.app.utils.getProductPlaceholderEmoji
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -250,8 +251,7 @@ private fun OrderCard(
             ) {
                 order.items.forEach { item ->
                     val product = item.product
-                    val foodEmojis = listOf("🍱", "🍛", "🧆", "🍲", "🥙", "🍗", "🥟", "🍚", "🥘", "🍜", "🥗", "🍣")
-                    val productEmoji = if (product != null) foodEmojis[product.idProduct % foodEmojis.size] else "📦"
+                    val productEmoji = if (product != null) getProductPlaceholderEmoji(null, product.idProduct) else "📦"
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),

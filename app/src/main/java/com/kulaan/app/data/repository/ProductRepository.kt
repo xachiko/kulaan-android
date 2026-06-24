@@ -9,8 +9,8 @@ import retrofit2.Response
 class ProductRepository(private val sessionManager: SessionManager) {
     private val api = ApiClient.getInstance(sessionManager)
 
-    suspend fun getProducts(search: String?, category: Int?, page: Int): Response<ProductResponse> {
-        return api.getProducts(keyword = search, category = category, page = page)
+    suspend fun getProducts(search: String?, category: Int?, minPrice: Int?, maxPrice: Int?, page: Int): Response<ProductResponse> {
+        return api.getProducts(keyword = search, category = category, minPrice = minPrice, maxPrice = maxPrice, page = page)
     }
 
     suspend fun getCategories(): Response<List<com.kulaan.app.data.model.Category>> {
