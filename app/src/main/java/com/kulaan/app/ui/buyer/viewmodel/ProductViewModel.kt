@@ -38,6 +38,12 @@ class ProductViewModel(private val sessionManager: SessionManager) : ViewModel()
     private val _selectedCategory = MutableStateFlow<Int?>(null)
     val selectedCategory: StateFlow<Int?> = _selectedCategory.asStateFlow()
 
+    private val _minPrice = MutableStateFlow<Int?>(null)
+    val minPrice: StateFlow<Int?> = _minPrice.asStateFlow()
+
+    private val _maxPrice = MutableStateFlow<Int?>(null)
+    val maxPrice: StateFlow<Int?> = _maxPrice.asStateFlow()
+
     private var currentPage = 1
     private var lastPage = 1
     private var isLoadingNextPage = false
@@ -88,6 +94,8 @@ class ProductViewModel(private val sessionManager: SessionManager) : ViewModel()
                 val response = repository.getProducts(
                     search = _searchQuery.value.ifBlank { null },
                     category = _selectedCategory.value,
+                    minPrice = _minPrice.value,
+                    maxPrice = _maxPrice.value,
                     page = currentPage
                 )
 
@@ -124,6 +132,12 @@ class ProductViewModel(private val sessionManager: SessionManager) : ViewModel()
 
     fun filterByCategory(categoryId: Int?) {
         _selectedCategory.value = categoryId
+        loadProducts(isRefresh = true)
+    }
+
+    fun filterByPrice(min: Int?, max: Int?) {
+        _minPrice.value = min
+        _maxPrice.value = max
         loadProducts(isRefresh = true)
     }
 

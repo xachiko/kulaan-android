@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import com.kulaan.app.ui.buyer.components.ProductCard
 import com.kulaan.app.ui.buyer.viewmodel.ProductViewModel
 import com.kulaan.app.ui.buyer.viewmodel.ProductViewModelFactory
@@ -65,6 +68,18 @@ fun HomeScreen(
 
     var showFilterSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    val minPrice by viewModel.minPrice.collectAsState()
+    val maxPrice by viewModel.maxPrice.collectAsState()
+    var tempMinPrice by remember { mutableStateOf("") }
+    var tempMaxPrice by remember { mutableStateOf("") }
+
+    LaunchedEffect(showFilterSheet) {
+        if (showFilterSheet) {
+            tempMinPrice = minPrice?.toString() ?: ""
+            tempMaxPrice = maxPrice?.toString() ?: ""
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -297,31 +312,139 @@ fun HomeScreen(
             ) {
                 Text("Filter Harga", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Pilih Rentang Harga", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val isAllSelected = tempMinPrice.isEmpty() && tempMaxPrice.isEmpty()
+                    PriceRangePill(
+                        label = "Semua Harga",
+                        isSelected = isAllSelected,
+                        onClick = {
+                            tempMinPrice = ""
+                            tempMaxPrice = ""
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    val isUnder10Selected = tempMinPrice.isEmpty() && tempMaxPrice == "10000"
+                    PriceRangePill(
+                        label = "< Rp 10.000",
+                        isSelected = isUnder10Selected,
+                        onClick = {
+                            tempMinPrice = ""
+                            tempMaxPrice = "10000"
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val is10to25Selected = tempMinPrice == "10000" && tempMaxPrice == "25000"
+                    PriceRangePill(
+                        label = "Rp 10rb - 25rb",
+                        isSelected = is10to25Selected,
+                        onClick = {
+                            tempMinPrice = "10000"
+                            tempMaxPrice = "25000"
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                    val is25to50Selected = tempMinPrice == "25000" && tempMaxPrice == "50000"
+                    PriceRangePill(
+                        label = "Rp 25rb - 50rb",
+                        isSelected = is25to50Selected,
+                        onClick = {
+                            tempMinPrice = "25000"
+                            tempMaxPrice = "50000"
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val isOver50Selected = tempMinPrice == "50000" && tempMaxPrice.isEmpty()
+                    PriceRangePill(
+                        label = "> Rp 50.000",
+                        isSelected = isOver50Selected,
+                        onClick = {
+                            tempMinPrice = "50000"
+                            tempMaxPrice = ""
+                        },
+                        modifier = Modifier.weight(0.5f)
+                    )
+                    Spacer(modifier = Modifier.weight(0.5f))
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Custom Harga", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        placeholder = { Text("Rp min") },
-                        modifier = Modifier.weight(1f)
+                        value = tempMinPrice,
+                        onValueChange = { input ->
+                            if (input.all { it.isDigit() }) {
+                                tempMinPrice = input
+                            }
+                        },
+                        placeholder = { Text("Rp min", fontSize = 14.sp) },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedBorderColor = Color(0xFF185FA5)
+                        )
                     )
                     Text(" - ", modifier = Modifier.padding(horizontal = 8.dp))
                     OutlinedTextField(
-                        value = "",
-                        onValueChange = {},
-                        placeholder = { Text("Rp max") },
-                        modifier = Modifier.weight(1f)
+                        value = tempMaxPrice,
+                        onValueChange = { input ->
+                            if (input.all { it.isDigit() }) {
+                                tempMaxPrice = input
+                            }
+                        },
+                        placeholder = { Text("Rp max", fontSize = 14.sp) },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White,
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedBorderColor = Color(0xFF185FA5)
+                        )
                     )
                 }
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(
-                    onClick = { showFilterSheet = false },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = {
+                        viewModel.filterByPrice(
+                            min = tempMinPrice.toIntOrNull(),
+                            max = tempMaxPrice.toIntOrNull()
+                        )
+                        showFilterSheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF185FA5))
                 ) {
-                    Text("Terapkan Filter")
+                    Text("Terapkan Filter", color = Color.White, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -352,6 +475,36 @@ fun CategoryPill(
             color = contentColor,
             fontSize = 12.sp,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun PriceRangePill(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (isSelected) Color(0xFF1976D2) else Color.White
+    val contentColor = if (isSelected) Color.White else Color.DarkGray
+    val borderColor = if (isSelected) Color.Transparent else Color(0xFFE0E0E0)
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = contentColor,
+            fontSize = 11.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            textAlign = TextAlign.Center
         )
     }
 }

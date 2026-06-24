@@ -30,6 +30,8 @@ interface ApiService {
     suspend fun getProducts(
         @Query("keyword") keyword: String? = null,
         @Query("category") category: Int? = null,
+        @Query("min_price") minPrice: Int? = null,
+        @Query("max_price") maxPrice: Int? = null,
         @Query("page") page: Int = 1
     ): Response<ProductResponse>
 
